@@ -1,0 +1,68 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: dark;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0d1117;
+  color: #e6edf3;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #161b22;
+}
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3d5afe, #00b0ff) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.btn-google {
+  background: #fff !important;
+  color: #333 !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  color: #8b949e;
+  font-size: 0.85rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #30363d;
+  }
+}
