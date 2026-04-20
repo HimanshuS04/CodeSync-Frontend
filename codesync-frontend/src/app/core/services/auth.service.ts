@@ -3,17 +3,20 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, 
-         RegisterRequest, User } from '../models/user.model';
+import {
+  AuthResponse, LoginRequest,
+  RegisterRequest, User
+} from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = environment.authServiceUrl;
-  private currentUserSubject = 
-    new BehaviorSubject<AuthResponse | null>(this.getStoredUser());
-  
+  private baseUrl = environment.apiGatewayUrl;
+  private currentUserSubject =
+    new BehaviorSubject<AuthResponse | null>(
+      this.getStoredUser());
+
   currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(
@@ -40,17 +43,16 @@ export class AuthService {
   }
 
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.baseUrl}/api/auth/profile`);
+    const userId = this.getStoredUser()?.token;
+    return this.http.post<User>(
+      `${this.baseUrl}/api/auth/profile`,
+      { userId: this.getUserId() });
   }
 
   updateProfile(data: any): Observable<User> {
     return this.http.put<User>(
-      `${this.baseUrl}/api/auth/profile`, data);
-  }
-
-  changePassword(data: any): Observable<any> {
-    return this.http.put(
-      `${this.baseUrl}/api/auth/password`, data);
+      `${this.baseUrl}/api/auth/profile`,
+      { ...data, userId: this.getUserId() });
   }
 
   logout(): void {
@@ -63,6 +65,16 @@ export class AuthService {
     return this.getStoredUser()?.token ?? null;
   }
 
+  getUserId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload[
+      'http://schemas.xmlsoap.org/ws/2005/05/' +
+      'identity/claims/nameidentifier'
+    ];
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
@@ -72,7 +84,8 @@ export class AuthService {
   }
 
   private storeUser(user: AuthResponse): void {
-    localStorage.setItem('codesync_user', JSON.stringify(user));
+    localStorage.setItem(
+      'codesync_user', JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 

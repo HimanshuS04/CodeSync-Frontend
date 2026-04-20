@@ -1,0 +1,84 @@
+.navbar {
+  background: #161b22 !important;
+  border-bottom: 1px solid #30363d;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 1.5rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+
+  .logo-icon {
+    color: #3d5afe;
+    font-size: 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3d5afe, #00b0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  margin-right: 1rem;
+
+  button {
+    color: #8b949e !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+      color: #e6edf3 !important;
+    }
+
+    mat-icon {
+      font-size: 1.1rem;
+      height: 1.1rem;
+      width: 1.1rem;
+    }
+  }
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3d5afe, #00b0ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.menu-header {
+  padding: 8px 16px;
+
+  .menu-username {
+    font-weight: 600;
+    color: #e6edf3;
+    font-size: 0.9rem;
+  }
+
+  .menu-email {
+    color: #8b949e;
+    font-size: 0.8rem;
+  }
+}
