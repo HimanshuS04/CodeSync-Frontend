@@ -3,29 +3,22 @@
 <div class="page">
   <div class="container">
 
-    <!-- Loading -->
     <div class="loading" *ngIf="loading">
       <p>Loading project...</p>
     </div>
 
     <div *ngIf="!loading && project">
 
-      <!-- Back -->
-      <button mat-button class="back-btn" (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon>
-        Back to Projects
+      <button mat-button
+              class="back-btn"
+              (click)="goBack()">
+        ← Back to Projects
       </button>
 
-      <!-- Project Header -->
       <div class="project-header">
         <div class="header-left">
-          <div class="project-icon">
-            <mat-icon>code</mat-icon>
-          </div>
-          <div>
-            <h1>{{ project.name }}</h1>
-            <p>{{ project.description || 'No description' }}</p>
-          </div>
+          <h1>{{ project.name }}</h1>
+          <p>{{ project.description || 'No description' }}</p>
         </div>
 
         <div class="header-actions">
@@ -36,54 +29,38 @@
           </span>
 
           <button mat-stroked-button
-        [class.starred]="isStarred"
-        (click)="toggleStar()">
-        <mat-icon>
-            {{ isStarred ? 'star' : 'star_border' }}
-        </mat-icon>
-        {{ project.starCount }}
-        </button>
+                  [class.starred]="isStarred"
+                  (click)="toggleStar()">
+            {{ isStarred ? '★' : '☆' }}
+            {{ project.starCount }}
+          </button>
 
           <button mat-raised-button
                   class="btn-primary"
                   (click)="openEditor()">
-            <mat-icon>code</mat-icon>
             Open Editor
           </button>
         </div>
       </div>
 
-      <!-- Info Cards -->
       <div class="info-grid">
         <div class="info-card">
-          <mat-icon>terminal</mat-icon>
-          <div>
-            <p class="label">Language</p>
-            <p class="value">{{ project.language }}</p>
-          </div>
+          <p class="label">Language</p>
+          <p class="value">{{ project.language }}</p>
         </div>
         <div class="info-card">
-          <mat-icon>star</mat-icon>
-          <div>
-            <p class="label">Stars</p>
-            <p class="value">{{ project.starCount }}</p>
-          </div>
+          <p class="label">Stars</p>
+          <p class="value">{{ project.starCount }}</p>
         </div>
         <div class="info-card">
-          <mat-icon>call_split</mat-icon>
-          <div>
-            <p class="label">Forks</p>
-            <p class="value">{{ project.forkCount }}</p>
-          </div>
+          <p class="label">Forks</p>
+          <p class="value">{{ project.forkCount }}</p>
         </div>
         <div class="info-card">
-          <mat-icon>schedule</mat-icon>
-          <div>
-            <p class="label">Created</p>
-            <p class="value">
-              {{ project.createdAt | date:'mediumDate' }}
-            </p>
-          </div>
+          <p class="label">Created</p>
+          <p class="value">
+            {{ project.createdAt | date:'mediumDate' }}
+          </p>
         </div>
       </div>
 

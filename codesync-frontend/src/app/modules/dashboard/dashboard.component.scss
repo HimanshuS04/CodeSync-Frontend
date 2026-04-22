@@ -5,10 +5,7 @@
 
 .hero {
   background: linear-gradient(
-    135deg,
-    #161b22 0%,
-    #0d1117 100%
-  );
+    135deg, #161b22 0%, #0d1117 100%);
   border-bottom: 1px solid #30363d;
   padding: 3rem 2rem;
 
@@ -59,10 +56,6 @@
     font-size: 1.2rem;
     font-weight: 600;
     color: #e6edf3;
-
-    mat-icon {
-      color: #3d5afe;
-    }
   }
 
   .view-all {
@@ -84,6 +77,9 @@
   padding: 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 
   &:hover {
     border-color: #3d5afe;
@@ -92,26 +88,28 @@
   }
 
   h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #e6edf3;
-    margin: 0.5rem 0 0.25rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
   }
 
   .description {
     color: #8b949e;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+    font-size: 0.82rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    margin: 0;
+    flex: 1;
   }
 }
 
+// Create card - NO mat-icon override here
 .create-card {
   display: flex;
   flex-direction: column;
@@ -122,15 +120,14 @@
   color: #8b949e;
   min-height: 150px;
 
-  mat-icon {
-    font-size: 2rem;
-    height: 2rem;
-    width: 2rem;
+  // Use class instead of element selector
+  .create-icon {
     color: #3d5afe;
   }
 
   &:hover {
     color: #3d5afe;
+    border-color: #3d5afe;
   }
 }
 
@@ -138,10 +135,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
 
-  .project-icon {
-    color: #3d5afe;
-  }
+// Use class not element selector for icon color
+.project-icon-color {
+  color: #3d5afe;
 }
 
 .visibility-badge {
@@ -149,6 +147,7 @@
   padding: 2px 8px;
   border-radius: 20px;
   font-weight: 600;
+  line-height: 1.6;
 
   &.public {
     background: rgba(63, 185, 80, 0.15);
@@ -167,16 +166,29 @@
   justify-content: space-between;
   color: #8b949e;
   font-size: 0.8rem;
+  margin-top: auto;
 
-  span {
+  .language {
     display: flex;
     align-items: center;
     gap: 4px;
+  }
 
-    mat-icon {
-      font-size: 0.9rem;
-      height: 0.9rem;
-      width: 0.9rem;
+  .stars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 2px 4px;
+    border-radius: 4px;
+
+    &:hover {
+      color: #f0c040;
+    }
+
+    &.starred-active {
+      color: #f0c040;
     }
   }
 }
@@ -185,25 +197,4 @@
   text-align: center;
   color: #8b949e;
   padding: 2rem;
-}
-
-.btn-primary {
-  background: linear-gradient(
-    135deg, #3d5afe, #00b0ff) !important;
-  color: white !important;
-}
-.stars {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s;
-
-  &:hover {
-    color: #f0c040;
-  }
-
-  .starred {
-    color: #f0c040 !important;
-  }
 }

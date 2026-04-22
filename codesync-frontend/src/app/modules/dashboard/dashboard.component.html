@@ -2,7 +2,6 @@
 
 <div class="dashboard">
 
-  <!-- Hero Section -->
   <div class="hero">
     <div class="hero-content">
       <h1>Welcome back,
@@ -14,7 +13,6 @@
       <button mat-raised-button
               class="btn-primary"
               (click)="createProject()">
-        <mat-icon>add</mat-icon>
         New Project
       </button>
     </div>
@@ -25,10 +23,7 @@
     <!-- My Projects -->
     <section class="section">
       <div class="section-header">
-        <h2>
-          <mat-icon>folder</mat-icon>
-          My Projects
-        </h2>
+        <h2>My Projects</h2>
         <button mat-button
                 class="view-all"
                 routerLink="/projects">
@@ -36,82 +31,88 @@
         </button>
       </div>
 
+      <div class="loading" *ngIf="loading">
+        <p>Loading...</p>
+      </div>
+
       <div class="projects-grid" *ngIf="!loading">
-        <!-- Create New Card -->
+
+        <!-- Create Card -->
         <div class="project-card create-card"
              (click)="createProject()">
-          <mat-icon>add_circle_outline</mat-icon>
-          <p>Create New Project</p>
+          <p>+ Create New Project</p>
         </div>
 
         <!-- Project Cards -->
         <div class="project-card"
-             *ngFor="let project of myProjects.slice(0, 5)"
+             *ngFor="let project of myProjects.slice(0,5)"
              (click)="openProject(project.projectId)">
+
           <div class="project-header">
-            <mat-icon class="project-icon">code</mat-icon>
             <span class="visibility-badge"
-                  [class.public]="project.visibility === 'PUBLIC'"
-                  [class.private]="project.visibility === 'PRIVATE'">
+                  [class.public]="project.visibility==='PUBLIC'"
+                  [class.private]="project.visibility==='PRIVATE'">
               {{ project.visibility }}
             </span>
           </div>
+
           <h3>{{ project.name }}</h3>
+
           <p class="description">
             {{ project.description || 'No description' }}
           </p>
+
           <div class="project-footer">
             <span class="language">
-              <mat-icon>terminal</mat-icon>
               {{ project.language }}
             </span>
-            <span class="stars" (click)="toggleStar($event, project.projectId)">
-              <mat-icon [class.starred]="isStarred(project.projectId)">
-                {{ isStarred(project.projectId) ? 'star' : 'star_border' }}
-              </mat-icon>
+            <span class="stars"
+                  [class.starred-active]="isStarred(project.projectId)"
+                  (click)="toggleStar($event, project.projectId)">
+              {{ isStarred(project.projectId) ? '★' : '☆' }}
               {{ project.starCount }}
             </span>
           </div>
-        </div>
-      </div>
 
-      <!-- Loading -->
-      <div class="loading" *ngIf="loading">
-        <p>Loading projects...</p>
+        </div>
       </div>
     </section>
 
     <!-- Public Projects -->
     <section class="section">
       <div class="section-header">
-        <h2>
-          <mat-icon>public</mat-icon>
-          Explore Public Projects
-        </h2>
+        <h2>Explore Public Projects</h2>
       </div>
 
       <div class="projects-grid">
         <div class="project-card"
              *ngFor="let project of publicProjects"
              (click)="openProject(project.projectId)">
+
           <div class="project-header">
-            <mat-icon class="project-icon">folder_open</mat-icon>
-            <span class="visibility-badge public">PUBLIC</span>
+            <span class="visibility-badge public">
+              PUBLIC
+            </span>
           </div>
+
           <h3>{{ project.name }}</h3>
+
           <p class="description">
             {{ project.description || 'No description' }}
           </p>
+
           <div class="project-footer">
             <span class="language">
-              <mat-icon>terminal</mat-icon>
               {{ project.language }}
             </span>
-            <span class="stars">
-              <mat-icon>star</mat-icon>
+            <span class="stars"
+                  [class.starred-active]="isStarred(project.projectId)"
+                  (click)="toggleStar($event, project.projectId)">
+              {{ isStarred(project.projectId) ? '★' : '☆' }}
               {{ project.starCount }}
             </span>
           </div>
+
         </div>
       </div>
     </section>

@@ -1,12 +1,9 @@
 <div class="dialog-container">
 
   <div class="dialog-header">
-    <h2>
-      <mat-icon>add_circle</mat-icon>
-      Create New Project
-    </h2>
+    <h2>Create New Project</h2>
     <button mat-icon-button (click)="onCancel()">
-      <mat-icon>close</mat-icon>
+      ✕
     </button>
   </div>
 
@@ -48,12 +45,8 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Visibility</mat-label>
       <mat-select formControlName="visibility">
-        <mat-option value="PUBLIC">
-          🌍 Public
-        </mat-option>
-        <mat-option value="PRIVATE">
-          🔒 Private
-        </mat-option>
+        <mat-option value="PUBLIC">Public</mat-option>
+        <mat-option value="PRIVATE">Private</mat-option>
       </mat-select>
     </mat-form-field>
 

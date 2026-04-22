@@ -83,6 +83,9 @@
   padding: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 
   &:hover {
     border-color: #3d5afe;
@@ -91,39 +94,30 @@
   }
 
   h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #e6edf3;
-    margin: 0.75rem 0 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
   }
 
   .desc {
     color: #8b949e;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+    font-size: 0.82rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    margin: 0;
+    flex: 1;
   }
 }
 
 .card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .card-icon {
-    width: 36px;
-    height: 36px;
-    background: rgba(61, 90, 254, 0.15);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    mat-icon { color: #3d5afe; }
-  }
+  justify-content: flex-end;
 }
 
 .badge {
@@ -147,30 +141,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: auto;
 
   .lang {
-    display: flex;
-    align-items: center;
-    gap: 4px;
     color: #8b949e;
     font-size: 0.8rem;
-
-    mat-icon {
-      font-size: 0.9rem;
-      height: 0.9rem;
-      width: 0.9rem;
-    }
   }
 
   .star-btn {
-  &.starred {
-    color: #f0c040 !important;
-  }
+    color: #8b949e;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
 
-  &:hover {
-    color: #f0c040 !important;
+    &:hover {
+      color: #f0c040;
+      background: rgba(240, 192, 64, 0.1);
+    }
+
+    &.starred {
+      color: #f0c040;
+    }
   }
-}
 }
 
 .empty {
@@ -179,13 +173,6 @@
   padding: 4rem;
   color: #8b949e;
 
-  mat-icon {
-    font-size: 3rem;
-    height: 3rem;
-    width: 3rem;
-    margin-bottom: 1rem;
-  }
-
   p { margin-bottom: 1rem; }
 }
 
@@ -193,10 +180,4 @@
   text-align: center;
   color: #8b949e;
   padding: 3rem;
-}
-
-.btn-primary {
-  background: linear-gradient(
-    135deg, #3d5afe, #00b0ff) !important;
-  color: white !important;
 }
