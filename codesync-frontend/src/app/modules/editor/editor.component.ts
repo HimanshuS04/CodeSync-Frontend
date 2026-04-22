@@ -15,6 +15,8 @@ import { FileService, CodeFile, FileTreeItem }
   from '../../core/services/file.service';
 import { ExecutionService, ExecutionResult }
   from '../../core/services/execution.service';
+import { VersionService, SnapshotResponse }
+  from '../../core/services/version.service';
 
 declare const monaco: any;
 
@@ -52,6 +54,14 @@ export class EditorComponent implements OnInit {
   executionResult: ExecutionResult | null = null;
   activeOutputTab: 'output' | 'error' | 'info' = 'output';
 
+  // Version/Snapshot
+  showHistory = false;
+  snapshots: SnapshotResponse[] = [];
+  loadingHistory = false;
+
+  // Right panel mode
+  rightPanel: 'none' | 'history' = 'none';
+
   @ViewChild('editorContainer')
   editorContainer!: ElementRef;
 
@@ -62,6 +72,7 @@ export class EditorComponent implements OnInit {
     private router: Router,
     private fileService: FileService,
     private executionService: ExecutionService,
+    private versionService: VersionService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
@@ -180,6 +191,10 @@ export class EditorComponent implements OnInit {
     this.activeFile = file;
     this.editorContent = file.content;
 
+    // Close history when switching files
+    this.rightPanel = 'none';
+    this.snapshots = [];
+
     if (!this.editor) {
       setTimeout(() => {
         this.initEditor();
@@ -261,7 +276,7 @@ export class EditorComponent implements OnInit {
     });
   }
 
-  // ✅ Run Code
+  // ===== Run Code =====
   runCode(): void {
     if (!this.activeFile) return;
     this.running = true;
@@ -280,12 +295,9 @@ export class EditorComponent implements OnInit {
       next: (result) => {
         this.running = false;
         this.executionResult = result;
-
-        // Auto switch to error tab if failed
         if (result.stderr || result.compileOutput) {
           this.activeOutputTab = 'error';
         }
-
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -298,6 +310,116 @@ export class EditorComponent implements OnInit {
     });
   }
 
+  // ===== Snapshot/Version =====
+  createSnapshot(): void {
+    if (!this.activeFile) return;
+
+    const message = prompt('Enter commit message:');
+    if (!message) return;
+
+    this.versionService.createSnapshot({
+      projectId: this.projectId,
+      fileId: this.activeFile.fileId,
+      message: message,
+      content: this.editorContent
+    }).subscribe({
+      next: () => {
+        this.snackBar.open(
+          'Snapshot created!', 'Close',
+          { duration: 2000 });
+        // Refresh history if open
+        if (this.rightPanel === 'history') {
+          this.loadHistory();
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  toggleHistory(): void {
+    if (this.rightPanel === 'history') {
+      this.rightPanel = 'none';
+    } else {
+      this.rightPanel = 'history';
+      this.loadHistory();
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadHistory(): void {
+    if (!this.activeFile) return;
+    this.loadingHistory = true;
+
+    this.versionService.getFileHistory(
+      this.activeFile.fileId
+    ).subscribe({
+      next: (snapshots) => {
+        this.snapshots = snapshots;
+        this.loadingHistory = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingHistory = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  restoreSnapshot(snapshot: SnapshotResponse): void {
+    if (!confirm(
+      `Restore file to snapshot #${snapshot.id}?\n"${snapshot.message}"`
+    )) return;
+
+    this.versionService.restoreSnapshot(snapshot.id)
+      .subscribe({
+        next: () => {
+          this.snackBar.open(
+            'File restored!', 'Close',
+            { duration: 2000 });
+          // Reload file content
+          if (this.activeFile) {
+            this.fileService.getFileById(
+              this.activeFile.fileId
+            ).subscribe({
+              next: (file) => {
+                this.openFiles = this.openFiles.map(f =>
+                  f.fileId === file.fileId ? file : f);
+                this.setActiveFile(file);
+                this.loadHistory();
+              }
+            });
+          }
+        },
+        error: (err) => {
+          this.snackBar.open(
+            err.error?.message || 'Restore failed',
+            'Close', { duration: 3000 });
+        }
+      });
+  }
+
+  getTimeAgo(date: string): string {
+    const now = new Date();
+    const then = new Date(date);
+    const diff = now.getTime() - then.getTime();
+
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  // ===== Helpers =====
   getStatusColor(): string {
     if (!this.executionResult) return '#8b949e';
     switch (this.executionResult.status) {
