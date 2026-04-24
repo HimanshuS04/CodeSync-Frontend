@@ -14,7 +14,7 @@
       <button class="icon-btn"
               [class.active-btn]="showStdin"
               (click)="toggleStdin()"
-              *ngIf="activeFile">
+              *ngIf="activeFile && canEdit">
         ⌨️ Stdin
       </button>
 
@@ -27,13 +27,15 @@
 
       <button class="commit-btn"
               [disabled]="!activeFile"
-              (click)="createSnapshot()">
+              (click)="createSnapshot()"
+              *ngIf="canEdit">
         📸 Commit
       </button>
 
       <button class="run-btn"
               [disabled]="!activeFile || running"
-              (click)="runCode()">
+              (click)="runCode()"
+              *ngIf="canEdit">
         {{ running ? '⏳ Running...' : '▶ Run' }}
       </button>
 
@@ -41,14 +43,20 @@
               [disabled]="!activeFile
                 || !unsavedFiles.has(activeFile?.fileId ?? '')
                 || saving"
-              (click)="saveFile()">
+              (click)="saveFile()"
+              *ngIf="canEdit">
         {{ saving ? 'Saving...' : '💾 Save' }}
       </button>
 
       <button class="new-btn"
-              (click)="createFile()">
+              (click)="createFile()"
+              *ngIf="canEdit">
         + New File
       </button>
+
+      <span class="readonly-badge" *ngIf="!canEdit">
+        🔒 Read Only
+      </span>
     </div>
   </div>
 

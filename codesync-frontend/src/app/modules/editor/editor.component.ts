@@ -17,6 +17,10 @@ import { ExecutionService, ExecutionResult }
   from '../../core/services/execution.service';
 import { VersionService, SnapshotResponse }
   from '../../core/services/version.service';
+import { ProjectService }
+  from '../../core/services/project.service';
+import { AuthService }
+  from '../../core/services/auth.service';
 
 declare const monaco: any;
 
@@ -45,7 +49,7 @@ export class EditorComponent implements OnInit {
   loading = true;
   saving = false;
   sidebarOpen = true;
-
+  canEdit = false;
   // Execution
   running = false;
   stdin = '';
@@ -73,6 +77,8 @@ export class EditorComponent implements OnInit {
     private fileService: FileService,
     private executionService: ExecutionService,
     private versionService: VersionService,
+    private projectService: ProjectService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
@@ -80,8 +86,32 @@ export class EditorComponent implements OnInit {
   ngOnInit(): void {
     this.projectId = this.route
       .snapshot.paramMap.get('projectId') || '';
+    this.checkAccess();
     this.loadFileTree();
     this.waitForMonaco();
+  }
+
+  checkAccess(): void {
+    this.projectService.checkAccess(this.projectId)
+      .subscribe({
+        next: (result) => {
+          this.canEdit =
+            result.role === 'OWNER'
+            || result.role === 'EDITOR';
+          this.cdr.detectChanges();
+
+          // Update Monaco if already created
+          if (this.editor) {
+            this.editor.updateOptions({
+              readOnly: !this.canEdit
+            });
+          }
+        },
+        error: () => {
+          this.canEdit = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   waitForMonaco(): void {
@@ -133,22 +163,25 @@ export class EditorComponent implements OnInit {
         padding: { top: 8 },
         tabSize: 2,
         wordWrap: 'on',
+        readOnly: !this.canEdit,
         autoClosingBrackets: 'always',
         autoClosingQuotes: 'always'
       });
 
-    this.editor.onDidChangeModelContent(() => {
-      if (this.activeFile) {
-        this.editorContent = this.editor.getValue();
-        this.unsavedFiles.add(this.activeFile.fileId);
-        this.cdr.detectChanges();
-      }
-    });
+    if (this.canEdit) {
+      this.editor.onDidChangeModelContent(() => {
+        if (this.activeFile) {
+          this.editorContent = this.editor.getValue();
+          this.unsavedFiles.add(this.activeFile.fileId);
+          this.cdr.detectChanges();
+        }
+      });
 
-    this.editor.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-      () => this.saveFile()
-    );
+      this.editor.addCommand(
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+        () => this.saveFile()
+      );
+    }
   }
 
   loadFileTree(): void {

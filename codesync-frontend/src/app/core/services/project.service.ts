@@ -75,13 +75,6 @@ export class ProjectService {
       `${this.baseUrl}/api/projects/delete`,
       { projectId });
   }
-
-//   starProject(projectId: string): Observable<any> {
-//     return this.http.post(
-//       `${this.baseUrl}/api/projects/star`,
-//       { projectId });
-//   }
-
   addMember(projectId: string, userId: string): Observable<any> {
     return this.http.post(
       `${this.baseUrl}/api/projects/members/add`,
@@ -102,5 +95,10 @@ export class ProjectService {
   getStarredIds(): Observable<string[]> {
     return this.http.get<string[]>(
       `${this.baseUrl}/api/projects/starred`);
+  }
+  checkAccess(projectId: string): Observable<{role: string}> {
+    return this.http.post<{role: string}>(
+      `${this.baseUrl}/api/projects/check-access`,
+      { projectId });
   }
 }
