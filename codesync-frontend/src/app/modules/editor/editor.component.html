@@ -8,9 +8,35 @@
         {{ sidebarOpen ? '◀' : '▶' }}
       </button>
       <span class="title">⟨/⟩ Editor</span>
+
+      <!-- Live indicator -->
+      <span class="live-badge" *ngIf="isCollabActive">
+        🟢 Live | {{ participants.length }} users
+      </span>
     </div>
 
     <div class="top-right">
+
+      <!-- Collab buttons -->
+      <button class="collab-btn"
+              (click)="startCollab()"
+              *ngIf="isOwner && !isCollabActive && activeFile">
+        👥 Start Collab
+      </button>
+
+      <button class="join-btn"
+              (click)="joinCollab()"
+              *ngIf="canEdit && !isCollabActive && !isOwner">
+        👥 Join Session
+      </button>
+
+      <button class="icon-btn"
+              [class.active-btn]="rightPanel==='collab'"
+              (click)="rightPanel = rightPanel==='collab' ? 'none' : 'collab'"
+              *ngIf="isCollabActive">
+        👥 Session
+      </button>
+
       <button class="icon-btn"
               [class.active-btn]="showStdin"
               (click)="toggleStdin()"
@@ -60,18 +86,17 @@
     </div>
   </div>
 
-  <!-- Stdin Panel -->
+  <!-- Stdin -->
   <div class="stdin-panel" *ngIf="showStdin">
     <div class="stdin-header">
-      <span>⌨️ Standard Input (stdin)</span>
+      <span>⌨️ Standard Input</span>
       <button class="icon-btn small"
               (click)="toggleStdin()">✕</button>
     </div>
     <textarea class="stdin-area"
               [(ngModel)]="stdin"
               placeholder="Enter input here..."
-              rows="3">
-    </textarea>
+              rows="3"></textarea>
   </div>
 
   <!-- Body -->
@@ -84,11 +109,8 @@
         <div class="empty-msg"
              *ngIf="fileTree.length === 0 && !loading">
           <p>No files yet</p>
-          <button (click)="createFile()">
-            + Create File
-          </button>
+          <button (click)="createFile()">+ Create File</button>
         </div>
-
         <app-file-tree
           *ngIf="fileTree.length > 0"
           [items]="fileTree"
@@ -101,7 +123,6 @@
 
     <!-- Main -->
     <div class="main">
-
       <app-file-tabs
         [openFiles]="openFiles"
         [activeFileId]="activeFile?.fileId || null"
@@ -111,127 +132,66 @@
       </app-file-tabs>
 
       <div class="editor-with-right">
-
-        <!-- Editor + Output Split -->
         <div class="editor-output-split">
 
           <div class="editor-area"
                [class.with-output]="showOutput">
             <div #editorContainer
                  class="monaco-box"
-                 *ngIf="activeFile">
-            </div>
-
+                 *ngIf="activeFile"></div>
             <div class="empty-state" *ngIf="!activeFile">
               <h2>⟨/⟩ CodeSync Editor</h2>
               <p>Select a file to start editing</p>
-              <p class="shortcut">
-                <kbd>Ctrl</kbd>+<kbd>S</kbd> Save
-              </p>
             </div>
           </div>
 
-          <!-- Output Panel -->
+          <!-- Output Panel (same as before) -->
           <div class="output-panel" *ngIf="showOutput">
             <div class="output-header">
               <div class="output-tabs">
-                <button
-                  [class.active]="activeOutputTab==='output'"
-                  (click)="activeOutputTab='output'">
-                  Output
-                </button>
-                <button
-                  [class.active]="activeOutputTab==='error'"
-                  (click)="activeOutputTab='error'">
-                  Errors
-                </button>
-                <button
-                  [class.active]="activeOutputTab==='info'"
-                  (click)="activeOutputTab='info'">
-                  Info
-                </button>
+                <button [class.active]="activeOutputTab==='output'"
+                        (click)="activeOutputTab='output'">Output</button>
+                <button [class.active]="activeOutputTab==='error'"
+                        (click)="activeOutputTab='error'">Errors</button>
+                <button [class.active]="activeOutputTab==='info'"
+                        (click)="activeOutputTab='info'">Info</button>
               </div>
-              <div class="output-status"
-                   *ngIf="executionResult">
+              <div class="output-status" *ngIf="executionResult">
                 <span [style.color]="getStatusColor()">
-                  {{ getStatusIcon() }}
-                  {{ executionResult.status }}
+                  {{ getStatusIcon() }} {{ executionResult.status }}
                 </span>
               </div>
-              <button class="icon-btn small"
-                      (click)="toggleOutput()">✕</button>
+              <button class="icon-btn small" (click)="toggleOutput()">✕</button>
             </div>
-
             <div class="output-loading" *ngIf="running">
               <div class="spinner"></div>
-              <p>Running your code...</p>
+              <p>Running...</p>
             </div>
-
-            <div class="output-empty"
-                 *ngIf="!running && !executionResult">
-              <p>Click ▶ Run to execute your code</p>
+            <div class="output-empty" *ngIf="!running && !executionResult">
+              <p>Click ▶ Run to execute</p>
             </div>
-
-            <div class="output-content"
-                 *ngIf="!running && executionResult
-                        && activeOutputTab==='output'">
-              <pre *ngIf="executionResult.stdout">{{
-                executionResult.stdout
-              }}</pre>
-              <div class="no-output"
-                   *ngIf="!executionResult.stdout">
-                No output
-              </div>
+            <div class="output-content" *ngIf="!running && executionResult && activeOutputTab==='output'">
+              <pre *ngIf="executionResult.stdout">{{ executionResult.stdout }}</pre>
+              <div class="no-output" *ngIf="!executionResult.stdout">No output</div>
             </div>
-
-            <div class="output-content error-content"
-                 *ngIf="!running && executionResult
-                        && activeOutputTab==='error'">
-              <pre *ngIf="executionResult.stderr">{{
-                executionResult.stderr
-              }}</pre>
-              <pre *ngIf="executionResult.compileOutput">{{
-                executionResult.compileOutput
-              }}</pre>
-              <div class="no-output"
-                   *ngIf="!executionResult.stderr
-                          && !executionResult.compileOutput">
-                No errors
-              </div>
+            <div class="output-content error-content" *ngIf="!running && executionResult && activeOutputTab==='error'">
+              <pre *ngIf="executionResult.stderr">{{ executionResult.stderr }}</pre>
+              <pre *ngIf="executionResult.compileOutput">{{ executionResult.compileOutput }}</pre>
+              <div class="no-output" *ngIf="!executionResult.stderr && !executionResult.compileOutput">No errors</div>
             </div>
-
-            <div class="output-content"
-                 *ngIf="!running && executionResult
-                        && activeOutputTab==='info'">
+            <div class="output-content" *ngIf="!running && executionResult && activeOutputTab==='info'">
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">Status</span>
-                  <span class="info-value"
-                        [style.color]="getStatusColor()">
-                    {{ executionResult.status }}
-                  </span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Language</span>
-                  <span class="info-value">
-                    {{ executionResult.language }}
-                  </span>
+                  <span class="info-value" [style.color]="getStatusColor()">{{ executionResult.status }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Time</span>
-                  <span class="info-value">
-                    {{ executionResult.executionTimeMs
-                       ? executionResult.executionTimeMs + ' ms'
-                       : 'N/A' }}
-                  </span>
+                  <span class="info-value">{{ executionResult.executionTimeMs ? executionResult.executionTimeMs + 'ms' : 'N/A' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Memory</span>
-                  <span class="info-value">
-                    {{ executionResult.memoryUsedKb
-                       ? executionResult.memoryUsedKb + ' KB'
-                       : 'N/A' }}
-                  </span>
+                  <span class="info-value">{{ executionResult.memoryUsedKb ? executionResult.memoryUsedKb + 'KB' : 'N/A' }}</span>
                 </div>
               </div>
             </div>
@@ -240,58 +200,75 @@
         </div>
 
         <!-- Right Panel: History -->
-        <div class="right-panel"
-             *ngIf="rightPanel === 'history'">
+        <div class="right-panel" *ngIf="rightPanel === 'history'">
           <div class="right-header">
-            <span>📜 Version History</span>
-            <button class="icon-btn small"
-                    (click)="rightPanel='none'">✕</button>
+            <span>📜 History</span>
+            <button class="icon-btn small" (click)="rightPanel='none'">✕</button>
           </div>
-
           <div class="right-content">
-            <div class="history-loading"
-                 *ngIf="loadingHistory">
-              Loading...
+            <div class="history-loading" *ngIf="loadingHistory">Loading...</div>
+            <div class="history-empty" *ngIf="!loadingHistory && snapshots.length === 0">
+              <p>No snapshots</p>
             </div>
-
-            <div class="history-empty"
-                 *ngIf="!loadingHistory
-                        && snapshots.length === 0">
-              <p>No snapshots yet</p>
-              <p class="hint">Click 📸 Commit to create one</p>
-            </div>
-
-            <div class="snapshot-list"
-                 *ngIf="!loadingHistory
-                        && snapshots.length > 0">
-
-              <div class="snapshot-item"
-                   *ngFor="let snap of snapshots; let i = index">
-
+            <div class="snapshot-list" *ngIf="!loadingHistory && snapshots.length > 0">
+              <div class="snapshot-item" *ngFor="let snap of snapshots">
                 <div class="snapshot-header">
                   <span class="snapshot-id">#{{ snap.id }}</span>
-                  <span class="snapshot-time">
-                    {{ getTimeAgo(snap.createdAt) }}
-                  </span>
+                  <span class="snapshot-time">{{ getTimeAgo(snap.createdAt) }}</span>
                 </div>
-
-                <div class="snapshot-message">
-                  {{ snap.message }}
-                </div>
-
-                <div class="snapshot-hash">
-                  {{ snap.hash.substring(0, 12) }}...
-                </div>
-
+                <div class="snapshot-message">{{ snap.message }}</div>
+                <div class="snapshot-hash">{{ snap.hash.substring(0, 12) }}...</div>
                 <div class="snapshot-actions">
-                  <button class="restore-btn"
-                          (click)="restoreSnapshot(snap)">
-                    ↩ Restore
-                  </button>
+                  <button class="restore-btn" (click)="restoreSnapshot(snap)">↩ Restore</button>
                 </div>
-
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Collab Session -->
+        <div class="right-panel" *ngIf="rightPanel === 'collab'">
+          <div class="right-header">
+            <span>👥 Live Session</span>
+            <button class="icon-btn small" (click)="rightPanel='none'">✕</button>
+          </div>
+          <div class="right-content">
+
+            <!-- Session ID -->
+            <div class="session-id-box">
+              <span class="session-label">Session ID</span>
+              <div class="session-id-row">
+                <span class="session-id">
+                  {{ collabSession?.sessionId?.substring(0, 8) }}...
+                </span>
+                <button class="copy-btn"
+                        (click)="copySessionId()">
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+
+            <!-- Participants -->
+            <div class="participants-section">
+              <span class="section-label">
+                Participants ({{ participants.length }})
+              </span>
+              <div class="participant-item"
+                   *ngFor="let p of participants">
+                <span class="p-color"
+                      [style.background]="p.color">
+                </span>
+                <span class="p-name">{{ p.username }}</span>
+                <span class="p-role">{{ p.role }}</span>
+              </div>
+            </div>
+
+            <!-- End/Leave -->
+            <button class="end-session-btn"
+                    (click)="endCollab()">
+              {{ isOwner ? '⏹ End Session' : '🚪 Leave Session' }}
+            </button>
+
           </div>
         </div>
 
@@ -301,22 +278,16 @@
 
   <!-- Status Bar -->
   <div class="status-bar">
-    <span *ngIf="activeFile">
-      📄 {{ activeFile.path }}
-    </span>
+    <span *ngIf="activeFile">📄 {{ activeFile.path }}</span>
     <span class="spacer"></span>
-    <span *ngIf="executionResult"
-          [style.color]="getStatusColor()">
+    <span *ngIf="isCollabActive" class="live-tag">
+      🟢 Live | {{ participants.length }} users
+    </span>
+    <span *ngIf="executionResult" [style.color]="getStatusColor()">
       {{ getStatusIcon() }} {{ executionResult.status }}
     </span>
-    <span *ngIf="activeFile" class="lang-tag">
-      {{ activeFile.language }}
-    </span>
-    <span *ngIf="activeFile
-                 && unsavedFiles.has(activeFile.fileId)"
-          class="unsaved-tag">
-      ● Unsaved
-    </span>
+    <span *ngIf="activeFile" class="lang-tag">{{ activeFile.language }}</span>
+    <span *ngIf="activeFile && unsavedFiles.has(activeFile.fileId)" class="unsaved-tag">● Unsaved</span>
   </div>
 
 </div>

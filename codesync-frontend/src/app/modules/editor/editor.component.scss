@@ -620,4 +620,157 @@
   font-size: 0.78rem;
   font-weight: 600;
 }
+// Collab buttons
+.collab-btn {
+  background: rgba(63, 185, 80, 0.12);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  color: #3fb950;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 5px 14px;
+  border-radius: 5px;
+  transition: all 0.15s;
+
+  &:hover {
+    background: rgba(63, 185, 80, 0.2);
+  }
+}
+
+.join-btn {
+  background: rgba(0, 176, 255, 0.12);
+  border: 1px solid rgba(0, 176, 255, 0.3);
+  color: #00b0ff;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 5px 14px;
+  border-radius: 5px;
+  transition: all 0.15s;
+
+  &:hover {
+    background: rgba(0, 176, 255, 0.2);
+  }
+}
+
+.live-badge {
+  background: rgba(63, 185, 80, 0.12);
+  color: #3fb950;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.live-tag {
+  background: rgba(63, 185, 80, 0.12);
+  color: #3fb950 !important;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+// Session panel
+.session-id-box {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+
+  .session-label {
+    font-size: 0.7rem;
+    color: #8b949e;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .session-id-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .session-id {
+    font-family: monospace;
+    font-size: 0.82rem;
+    color: #e6edf3;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      border-color: #3d5afe;
+      color: #3d5afe;
+    }
+  }
+}
+
+.participants-section {
+  margin-bottom: 16px;
+
+  .section-label {
+    font-size: 0.72rem;
+    color: #8b949e;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+
+  .p-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .p-name {
+    flex: 1;
+    font-size: 0.82rem;
+    color: #e6edf3;
+  }
+
+  .p-role {
+    font-size: 0.68rem;
+    color: #8b949e;
+    background: #161b22;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+}
+
+.end-session-btn {
+  width: 100%;
+  background: rgba(248, 81, 73, 0.12);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: #f85149;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  margin-top: 12px;
+
+  &:hover {
+    background: rgba(248, 81, 73, 0.2);
+  }
+}
 }
