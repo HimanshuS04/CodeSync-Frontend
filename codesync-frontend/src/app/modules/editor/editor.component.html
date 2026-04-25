@@ -50,6 +50,16 @@
               *ngIf="activeFile">
         📜 History
       </button>
+      <button class="icon-btn"
+        [class.active-btn]="rightPanel==='comments'"
+        (click)="toggleComments()"
+        *ngIf="activeFile">
+        💬 Comments
+        <span class="count-badge"
+              *ngIf="commentCount > 0">
+          {{ commentCount }}
+        </span>
+      </button>
 
       <button class="commit-btn"
               [disabled]="!activeFile"
@@ -289,5 +299,158 @@
     <span *ngIf="activeFile" class="lang-tag">{{ activeFile.language }}</span>
     <span *ngIf="activeFile && unsavedFiles.has(activeFile.fileId)" class="unsaved-tag">● Unsaved</span>
   </div>
+  <!-- Right Panel: Comments -->
+<div class="right-panel"
+     *ngIf="rightPanel === 'comments'">
+  <div class="right-header">
+    <span>💬 Comments</span>
+    <button class="icon-btn small"
+            (click)="rightPanel='none'">✕</button>
+  </div>
+  <div class="right-content">
+
+    <!-- Add Comment -->
+    <div class="add-comment-box" *ngIf="canEdit">
+      <textarea class="comment-input"
+                [(ngModel)]="newCommentText"
+                placeholder="Write a comment..."
+                rows="3">
+      </textarea>
+      <button class="add-comment-btn"
+              [disabled]="!newCommentText.trim()"
+              (click)="addComment()">
+        Add Comment
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="history-loading"
+         *ngIf="loadingComments">
+      Loading...
+    </div>
+
+    <!-- Empty -->
+    <div class="history-empty"
+         *ngIf="!loadingComments
+                && comments.length === 0">
+      <p>No comments yet</p>
+    </div>
+
+    <!-- Comment List -->
+    <div class="comment-list"
+         *ngIf="!loadingComments
+                && comments.length > 0">
+
+      <div class="comment-item"
+           *ngFor="let comment of comments"
+           [class.resolved]="comment.isResolved">
+
+        <!-- Comment Header -->
+        <div class="comment-top">
+          <div class="comment-author">
+            <span class="author-avatar">
+              {{ comment.authorName.charAt(0).toUpperCase() }}
+            </span>
+            <span class="author-name">
+              {{ comment.authorName }}
+            </span>
+          </div>
+          <span class="comment-time">
+            {{ getTimeAgo(comment.createdAt) }}
+          </span>
+        </div>
+
+        <!-- Comment Content -->
+        <div class="comment-body">
+          {{ comment.content }}
+        </div>
+
+        <!-- Resolved Badge -->
+        <span class="resolved-badge"
+              *ngIf="comment.isResolved">
+          ✅ Resolved
+        </span>
+
+        <!-- Comment Actions -->
+        <div class="comment-actions">
+          <button (click)="startReply(comment.id)">
+            ↩ Reply
+          </button>
+          <button *ngIf="!comment.isResolved"
+                  (click)="resolveComment(comment.id)">
+            ✓ Resolve
+          </button>
+          <button *ngIf="comment.isResolved"
+                  (click)="unresolveComment(comment.id)">
+            ↺ Unresolve
+          </button>
+          <button *ngIf="isMyComment(comment.authorId)"
+                  class="delete-action"
+                  (click)="deleteComment(comment.id)">
+            ✕ Delete
+          </button>
+        </div>
+
+        <!-- Reply Input -->
+        <div class="reply-input-box"
+             *ngIf="replyingTo === comment.id">
+          <textarea class="comment-input small"
+                    [(ngModel)]="replyText"
+                    placeholder="Write a reply..."
+                    rows="2">
+          </textarea>
+          <div class="reply-actions">
+            <button class="cancel-reply"
+                    (click)="cancelReply()">
+              Cancel
+            </button>
+            <button class="submit-reply"
+                    [disabled]="!replyText.trim()"
+                    (click)="submitReply()">
+              Reply
+            </button>
+          </div>
+        </div>
+
+        <!-- Replies -->
+        <div class="replies"
+             *ngIf="comment.replies.length > 0">
+          <div class="reply-item"
+               *ngFor="let reply of comment.replies">
+
+            <div class="comment-top">
+              <div class="comment-author">
+                <span class="author-avatar small-avatar">
+                  {{ reply.authorName.charAt(0).toUpperCase() }}
+                </span>
+                <span class="author-name">
+                  {{ reply.authorName }}
+                </span>
+              </div>
+              <span class="comment-time">
+                {{ getTimeAgo(reply.createdAt) }}
+              </span>
+            </div>
+
+            <div class="comment-body">
+              {{ reply.content }}
+            </div>
+
+            <div class="comment-actions"
+                 *ngIf="isMyComment(reply.authorId)">
+              <button class="delete-action"
+                      (click)="deleteComment(reply.id)">
+                ✕ Delete
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
 
 </div>
