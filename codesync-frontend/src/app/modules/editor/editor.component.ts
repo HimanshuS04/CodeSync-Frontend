@@ -25,6 +25,8 @@ import { AuthService }
 import { CollabService, CollabSession,
          CollabParticipant, OTOperation }
   from '../../core/services/collab.service';
+import { CommentService, CommentResponse }
+  from '../../core/services/comment.service';
 
 declare const monaco: any;
 
@@ -77,8 +79,16 @@ export class EditorComponent implements OnInit, OnDestroy {
   private ignoreNextChange = false;
   private debounceTimer: any = null;
 
+    // Comments
+  comments: CommentResponse[] = [];
+  loadingComments = false;
+  newCommentText = '';
+  replyingTo: number | null = null;
+  replyText = '';
+  commentCount = 0;
+
   // Right panel
-  rightPanel: 'none' | 'history' | 'collab' = 'none';
+  rightPanel: 'none' | 'history' | 'collab' | 'comments' = 'none';
 
   @ViewChild('editorContainer')
   editorContainer!: ElementRef;
@@ -94,6 +104,7 @@ export class EditorComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private authService: AuthService,
     private collabService: CollabService,
+    private commentService: CommentService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
@@ -280,6 +291,17 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.editorContent = file.content;
     this.rightPanel = 'none';
     this.snapshots = [];
+    this.comments = [];
+    this.commentCount = 0;
+
+    // Load comment count for badge
+    this.commentService.getCount(file.fileId)
+      .subscribe({
+        next: (result) => {
+          this.commentCount = result.count;
+          this.cdr.detectChanges();
+        }
+      });
 
     if (!this.editor) {
       setTimeout(() => {
@@ -841,6 +863,144 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.snackBar.open(
       'Session ID copied!', 'Close',
       { duration: 1500 });
+  }
+  // ===== Comments =====
+toggleComments(): void {
+    if (this.rightPanel === 'comments') {
+      this.rightPanel = 'none';
+    } else {
+      this.rightPanel = 'comments';
+      this.loadComments();
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadComments(): void {
+    if (!this.activeFile) return;
+    this.loadingComments = true;
+
+    this.commentService.getByFile(
+      this.activeFile.fileId
+    ).subscribe({
+      next: (comments) => {
+        this.comments = comments;
+        this.loadingComments = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingComments = false;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.commentService.getCount(
+      this.activeFile.fileId
+    ).subscribe({
+      next: (result) => {
+        this.commentCount = result.count;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  addComment(): void {
+    if (!this.activeFile || !this.newCommentText.trim())
+      return;
+
+    const user = this.authService.getStoredUser();
+
+    this.commentService.addComment({
+      projectId: this.projectId,
+      fileId: this.activeFile.fileId,
+      content: this.newCommentText.trim(),
+      authorName: user?.username || 'Anonymous'
+    }).subscribe({
+      next: () => {
+        this.newCommentText = '';
+        this.loadComments();
+        this.snackBar.open('Comment added', 'Close',
+          { duration: 1500 });
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  startReply(commentId: number): void {
+    this.replyingTo = commentId;
+    this.replyText = '';
+    this.cdr.detectChanges();
+  }
+
+  cancelReply(): void {
+    this.replyingTo = null;
+    this.replyText = '';
+    this.cdr.detectChanges();
+  }
+
+  submitReply(): void {
+    if (this.replyingTo === null
+        || !this.replyText.trim()) return;
+
+    const user = this.authService.getStoredUser();
+
+    this.commentService.reply({
+      parentCommentId: this.replyingTo,
+      content: this.replyText.trim(),
+      authorName: user?.username || 'Anonymous'
+    }).subscribe({
+      next: () => {
+        this.replyingTo = null;
+        this.replyText = '';
+        this.loadComments();
+        this.snackBar.open('Reply added', 'Close',
+          { duration: 1500 });
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  resolveComment(commentId: number): void {
+    this.commentService.resolve(commentId)
+      .subscribe({
+        next: () => this.loadComments()
+      });
+  }
+
+  unresolveComment(commentId: number): void {
+    this.commentService.unresolve(commentId)
+      .subscribe({
+        next: () => this.loadComments()
+      });
+  }
+
+  deleteComment(commentId: number): void {
+    if (!confirm('Delete this comment?')) return;
+
+    this.commentService.deleteComment(commentId)
+      .subscribe({
+        next: () => {
+          this.loadComments();
+          this.snackBar.open('Comment deleted',
+            'Close', { duration: 1500 });
+        },
+        error: (err) => {
+          this.snackBar.open(
+            err.error?.message || 'Failed',
+            'Close', { duration: 3000 });
+        }
+      });
+  }
+
+  isMyComment(authorId: string): boolean {
+    return authorId === this.authService.getUserId();
   }
 
   // ===== Helpers =====
