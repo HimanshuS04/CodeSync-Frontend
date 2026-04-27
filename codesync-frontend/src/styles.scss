@@ -66,3 +66,14 @@ body {
   background: #161b22 !important;
   border-radius: 12px !important;
 }
+// Notification dropdown fix
+.mat-mdc-menu-panel.notif-menu,
+.mat-mdc-menu-panel {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px !important;
+
+  .mat-mdc-menu-content {
+    background: #161b22 !important;
+  }
+}

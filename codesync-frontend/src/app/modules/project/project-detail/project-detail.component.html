@@ -64,6 +64,68 @@
         </div>
       </div>
 
+      <!-- Add Member Section - Owner Only -->
+      <div class="member-section" *ngIf="isOwner">
+        <h3>Add Team Member</h3>
+        <div class="add-member-wrapper">
+          <div class="search-box">
+            <input type="text"
+                   class="member-input"
+                   [(ngModel)]="searchQuery"
+                   (ngModelChange)="onSearchInput()"
+                   (blur)="closeDropdown()"
+                   placeholder="Search username..."
+                   autocomplete="off">
+
+            <!-- Search indicator -->
+            <span class="search-indicator"
+                  *ngIf="searching">
+              Searching...
+            </span>
+
+            <!-- Dropdown -->
+            <div class="user-dropdown"
+                 *ngIf="showDropdown">
+              <div class="dropdown-item"
+                   *ngFor="let user of searchResults"
+                   (mousedown)="selectUser(user)">
+                <span class="dropdown-avatar">
+                  {{ user.username.charAt(0).toUpperCase() }}
+                </span>
+                <div class="dropdown-info">
+                  <span class="dropdown-name">
+                    {{ user.username }}
+                  </span>
+                  <span class="dropdown-email">
+                    {{ user.email }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="add-member-btn"
+                  [disabled]="!selectedUser || addingMember"
+                  (click)="addMember()">
+            {{ addingMember ? 'Adding...' : '+ Add' }}
+          </button>
+        </div>
+
+        <!-- Selected user preview -->
+        <div class="selected-user"
+             *ngIf="selectedUser">
+          <span class="selected-avatar">
+            {{ selectedUser.username.charAt(0).toUpperCase() }}
+          </span>
+          <span class="selected-name">
+            {{ selectedUser.username }}
+          </span>
+          <span class="selected-email">
+            {{ selectedUser.email }}
+          </span>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

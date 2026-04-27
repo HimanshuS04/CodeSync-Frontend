@@ -101,4 +101,11 @@ export class ProjectService {
       `${this.baseUrl}/api/projects/check-access`,
       { projectId });
   }
+  addMemberByUsername(
+    projectId: string, username: string
+  ): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/api/projects/members/add-by-username`,
+      { projectId, username });
+  }
 }

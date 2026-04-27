@@ -15,6 +15,62 @@
     </button>
   </nav>
 
+  <!-- Notifications -->
+  <button mat-button
+          class="notif-btn"
+          [matMenuTriggerFor]="notifMenu"
+          (click)="openNotifications()">
+    🔔
+    <span class="notif-badge" *ngIf="unreadCount > 0">
+      {{ unreadCount }}
+    </span>
+  </button>
+
+  <mat-menu #notifMenu="matMenu" class="notif-menu">
+    <div class="notif-header">
+      <span>Notifications</span>
+      <button class="mark-all-btn"
+              *ngIf="unreadCount > 0"
+              (click)="markAllRead()">
+        Mark all read
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="notif-empty"
+         *ngIf="!loadingNotifications && notifications.length === 0">
+      No notifications
+    </div>
+
+    <div class="notif-loading" *ngIf="loadingNotifications">
+      Loading...
+    </div>
+
+    <div class="notif-list" *ngIf="!loadingNotifications && notifications.length > 0">
+      <button mat-menu-item
+        class="notif-item"
+        *ngFor="let n of notifications"
+        [class.unread]="!n.isRead"
+        (click)="handleNotificationClick(n)">
+  <div class="notif-content">
+    <div class="notif-title">{{ n.title }}</div>
+    <div class="notif-message">{{ n.message }}</div>
+    <div class="notif-meta">
+      <span class="notif-time">
+        {{ getTimeAgo(n.createdAt) }}
+      </span>
+      <span class="notif-copy"
+            *ngIf="n.relatedType === 'SESSION'">
+        📋 Click to copy Session ID
+      </span>
+    </div>
+  </div>
+</button>
+    </div>
+  </mat-menu>
+
+  <!-- User -->
   <button mat-icon-button [matMenuTriggerFor]="userMenu">
     <div class="avatar">
       {{ user?.username?.charAt(0)?.toUpperCase() }}

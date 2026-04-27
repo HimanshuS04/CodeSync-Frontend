@@ -47,13 +47,13 @@
       <button class="icon-btn"
               [class.active-btn]="rightPanel==='history'"
               (click)="toggleHistory()"
-              *ngIf="activeFile">
+              *ngIf="activeFile && canEdit">
         📜 History
       </button>
       <button class="icon-btn"
         [class.active-btn]="rightPanel==='comments'"
         (click)="toggleComments()"
-        *ngIf="activeFile">
+        *ngIf="activeFile && canEdit">
         💬 Comments
         <span class="count-badge"
               *ngIf="commentCount > 0">
@@ -64,7 +64,7 @@
       <button class="commit-btn"
               [disabled]="!activeFile"
               (click)="createSnapshot()"
-              *ngIf="canEdit">
+              *ngIf="activeFile && canEdit">
         📸 Commit
       </button>
 
