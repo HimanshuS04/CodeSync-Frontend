@@ -38,8 +38,7 @@ export class CreateProjectComponent {
 
   languages = [
     'Python', 'JavaScript', 'TypeScript',
-    'Java', 'C', 'C++','C#', 'Go',
-    'Rust', 'PHP', 'Ruby'
+    'Java', 'C', 'C++','C#'
   ];
 
   constructor(

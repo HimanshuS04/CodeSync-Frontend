@@ -11,21 +11,54 @@
     </div>
 
     <div class="top-right">
-      <button mat-raised-button
-              class="save-btn"
+
+      <!-- Stdin Toggle -->
+      <button class="icon-btn"
+              [class.active-btn]="showStdin"
+              (click)="toggleStdin()"
+              *ngIf="activeFile"
+              title="Toggle stdin input">
+        ⌨️ Stdin
+      </button>
+
+      <!-- Run Button -->
+      <button class="run-btn"
+              [disabled]="!activeFile || running"
+              (click)="runCode()">
+        {{ running ? '⏳ Running...' : '▶ Run' }}
+      </button>
+
+      <!-- Save Button -->
+      <button class="save-btn-top"
               [disabled]="!activeFile
-                || !unsavedFiles.has(activeFile.fileId)
+                || !unsavedFiles.has(activeFile?.fileId ?? '')
                 || saving"
               (click)="saveFile()">
         {{ saving ? 'Saving...' : '💾 Save' }}
       </button>
 
-      <button mat-raised-button
-              class="new-btn"
+      <!-- New File -->
+      <button class="new-btn"
               (click)="createFile()">
         + New File
       </button>
+
     </div>
+  </div>
+
+  <!-- Stdin Panel -->
+  <div class="stdin-panel" *ngIf="showStdin">
+    <div class="stdin-header">
+      <span>⌨️ Standard Input (stdin)</span>
+      <button class="icon-btn small"
+              (click)="toggleStdin()">✕</button>
+    </div>
+    <textarea class="stdin-area"
+              [(ngModel)]="stdin"
+              placeholder="Enter input for your program here...
+Example: if your code does input() or Scanner, enter values here"
+              rows="3">
+    </textarea>
   </div>
 
   <!-- Body -->
@@ -39,9 +72,8 @@
         <div class="empty-msg"
              *ngIf="fileTree.length === 0 && !loading">
           <p>No files yet</p>
-          <button mat-stroked-button
-                  (click)="createFile()">
-            Create File
+          <button (click)="createFile()">
+            + Create File
           </button>
         </div>
 
@@ -67,18 +99,142 @@
         (tabClosed)="onTabClosed($event)">
       </app-file-tabs>
 
-      <!-- Monaco -->
-      <div class="editor-area" *ngIf="activeFile">
-        <div #editorContainer class="monaco-box"></div>
-      </div>
+      <!-- Editor + Output Split -->
+      <div class="editor-output-split">
 
-      <!-- Empty State -->
-      <div class="empty-state" *ngIf="!activeFile">
-        <h2>⟨/⟩ CodeSync Editor</h2>
-        <p>Select a file from the sidebar to start editing</p>
-        <p class="shortcut">
-          <kbd>Ctrl</kbd> + <kbd>S</kbd> to save
-        </p>
+        <!-- Monaco Editor -->
+        <div class="editor-area"
+             [class.with-output]="showOutput">
+          <div #editorContainer
+               class="monaco-box"
+               *ngIf="activeFile">
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" *ngIf="!activeFile">
+            <h2>⟨/⟩ CodeSync Editor</h2>
+            <p>Select a file to start editing</p>
+            <p class="shortcut">
+              <kbd>Ctrl</kbd>+<kbd>S</kbd> Save
+              &nbsp;&nbsp;
+              <kbd>Ctrl</kbd>+<kbd>Enter</kbd> Run
+            </p>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="output-panel" *ngIf="showOutput">
+
+          <div class="output-header">
+            <div class="output-tabs">
+              <button
+                [class.active]="activeOutputTab==='output'"
+                (click)="activeOutputTab='output'">
+                Output
+              </button>
+              <button
+                [class.active]="activeOutputTab==='error'"
+                (click)="activeOutputTab='error'">
+                Errors
+              </button>
+              <button
+                [class.active]="activeOutputTab==='info'"
+                (click)="activeOutputTab='info'">
+                Info
+              </button>
+            </div>
+
+            <div class="output-status" *ngIf="executionResult">
+              <span [style.color]="getStatusColor()">
+                {{ getStatusIcon() }}
+                {{ executionResult.status }}
+              </span>
+            </div>
+
+            <button class="icon-btn small"
+                    (click)="toggleOutput()">✕</button>
+          </div>
+
+          <!-- Running State -->
+          <div class="output-loading" *ngIf="running">
+            <div class="spinner"></div>
+            <p>Running your code...</p>
+          </div>
+
+          <!-- No Result -->
+          <div class="output-empty"
+               *ngIf="!running && !executionResult">
+            <p>Click ▶ Run to execute your code</p>
+          </div>
+
+          <!-- Output Tab -->
+          <div class="output-content"
+               *ngIf="!running && executionResult
+                      && activeOutputTab==='output'">
+            <pre *ngIf="executionResult.stdout">{{
+              executionResult.stdout
+            }}</pre>
+            <div class="no-output"
+                 *ngIf="!executionResult.stdout">
+              No output
+            </div>
+          </div>
+
+          <!-- Error Tab -->
+          <div class="output-content error-content"
+               *ngIf="!running && executionResult
+                      && activeOutputTab==='error'">
+            <pre *ngIf="executionResult.stderr">{{
+              executionResult.stderr
+            }}</pre>
+            <pre *ngIf="executionResult.compileOutput">{{
+              executionResult.compileOutput
+            }}</pre>
+            <div class="no-output"
+                 *ngIf="!executionResult.stderr
+                        && !executionResult.compileOutput">
+              No errors
+            </div>
+          </div>
+
+          <!-- Info Tab -->
+          <div class="output-content"
+               *ngIf="!running && executionResult
+                      && activeOutputTab==='info'">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="info-value"
+                      [style.color]="getStatusColor()">
+                  {{ executionResult.status }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Language</span>
+                <span class="info-value">
+                  {{ executionResult.language }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Time</span>
+                <span class="info-value">
+                  {{ executionResult.executionTimeMs
+                     ? executionResult.executionTimeMs + ' ms'
+                     : 'N/A' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Memory</span>
+                <span class="info-value">
+                  {{ executionResult.memoryUsedKb
+                     ? executionResult.memoryUsedKb + ' KB'
+                     : 'N/A' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
     </div>
@@ -90,13 +246,18 @@
       📄 {{ activeFile.path }}
     </span>
     <span class="spacer"></span>
+    <span *ngIf="executionResult"
+          [style.color]="getStatusColor()">
+      {{ getStatusIcon() }} {{ executionResult.status }}
+      <span *ngIf="executionResult.executionTimeMs">
+        | {{ executionResult.executionTimeMs }}ms
+      </span>
+    </span>
     <span *ngIf="activeFile" class="lang-tag">
       {{ activeFile.language }}
     </span>
-    <span *ngIf="activeFile">
-      {{ activeFile.size }} bytes
-    </span>
-    <span *ngIf="activeFile && unsavedFiles.has(activeFile.fileId)"
+    <span *ngIf="activeFile
+                 && unsavedFiles.has(activeFile.fileId)"
           class="unsaved-tag">
       ● Unsaved
     </span>

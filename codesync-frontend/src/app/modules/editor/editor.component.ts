@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef,
          ViewChild, ElementRef,
          ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule }
@@ -12,6 +13,8 @@ import { FileTabsComponent }
   from './file-tabs/file-tabs.component';
 import { FileService, CodeFile, FileTreeItem }
   from '../../core/services/file.service';
+import { ExecutionService, ExecutionResult }
+  from '../../core/services/execution.service';
 
 declare const monaco: any;
 
@@ -20,6 +23,7 @@ declare const monaco: any;
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatSnackBarModule,
     FileTreeComponent,
@@ -40,6 +44,14 @@ export class EditorComponent implements OnInit {
   saving = false;
   sidebarOpen = true;
 
+  // Execution
+  running = false;
+  stdin = '';
+  showStdin = false;
+  showOutput = false;
+  executionResult: ExecutionResult | null = null;
+  activeOutputTab: 'output' | 'error' | 'info' = 'output';
+
   @ViewChild('editorContainer')
   editorContainer!: ElementRef;
 
@@ -49,6 +61,7 @@ export class EditorComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fileService: FileService,
+    private executionService: ExecutionService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
@@ -99,7 +112,8 @@ export class EditorComponent implements OnInit {
         theme: 'codesync-dark',
         automaticLayout: true,
         fontSize: 14,
-        fontFamily: "'Fira Code', 'Cascadia Code', monospace",
+        fontFamily:
+          "'Fira Code', 'Cascadia Code', monospace",
         minimap: { enabled: true },
         scrollBeyondLastLine: false,
         lineNumbers: 'on',
@@ -127,17 +141,18 @@ export class EditorComponent implements OnInit {
   }
 
   loadFileTree(): void {
-    this.fileService.getFileTree(this.projectId).subscribe({
-      next: (tree) => {
-        this.fileTree = [...tree];
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+    this.fileService.getFileTree(this.projectId)
+      .subscribe({
+        next: (tree) => {
+          this.fileTree = [...tree];
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   onFileSelected(item: FileTreeItem): void {
@@ -151,20 +166,20 @@ export class EditorComponent implements OnInit {
       return;
     }
 
-    this.fileService.getFileById(item.fileId).subscribe({
-      next: (file) => {
-        this.openFiles = [...this.openFiles, file];
-        this.setActiveFile(file);
-        this.cdr.detectChanges();
-      }
-    });
+    this.fileService.getFileById(item.fileId)
+      .subscribe({
+        next: (file) => {
+          this.openFiles = [...this.openFiles, file];
+          this.setActiveFile(file);
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   setActiveFile(file: CodeFile): void {
     this.activeFile = file;
     this.editorContent = file.content;
 
-    // Initialize editor if first time
     if (!this.editor) {
       setTimeout(() => {
         this.initEditor();
@@ -246,6 +261,65 @@ export class EditorComponent implements OnInit {
     });
   }
 
+  // ✅ Run Code
+  runCode(): void {
+    if (!this.activeFile) return;
+    this.running = true;
+    this.showOutput = true;
+    this.executionResult = null;
+    this.activeOutputTab = 'output';
+    this.cdr.detectChanges();
+
+    this.executionService.runCode({
+      projectId: this.projectId,
+      fileId: this.activeFile.fileId,
+      language: this.activeFile.language,
+      sourceCode: this.editorContent,
+      stdin: this.stdin || undefined
+    }).subscribe({
+      next: (result) => {
+        this.running = false;
+        this.executionResult = result;
+
+        // Auto switch to error tab if failed
+        if (result.stderr || result.compileOutput) {
+          this.activeOutputTab = 'error';
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.running = false;
+        this.snackBar.open(
+          err.error?.message || 'Execution failed',
+          'Close', { duration: 3000 });
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getStatusColor(): string {
+    if (!this.executionResult) return '#8b949e';
+    switch (this.executionResult.status) {
+      case 'COMPLETED': return '#3fb950';
+      case 'FAILED':
+      case 'COMPILATION_ERROR': return '#f85149';
+      case 'TIMED_OUT': return '#f0c040';
+      default: return '#8b949e';
+    }
+  }
+
+  getStatusIcon(): string {
+    if (!this.executionResult) return '';
+    switch (this.executionResult.status) {
+      case 'COMPLETED': return '✅';
+      case 'FAILED':
+      case 'COMPILATION_ERROR': return '❌';
+      case 'TIMED_OUT': return '⏱️';
+      default: return '⏳';
+    }
+  }
+
   createFile(): void {
     const path = prompt(
       'Enter file path (e.g. src/main.py):');
@@ -290,6 +364,16 @@ export class EditorComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleOutput(): void {
+    this.showOutput = !this.showOutput;
+    this.cdr.detectChanges();
+  }
+
+  toggleStdin(): void {
+    this.showStdin = !this.showStdin;
+    this.cdr.detectChanges();
+  }
+
   goBack(): void {
     this.router.navigate(['/projects', this.projectId]);
   }
@@ -303,10 +387,6 @@ export class EditorComponent implements OnInit {
       'csharp': 'csharp',
       'c': 'c',
       'cpp': 'cpp',
-      'go': 'go',
-      'rust': 'rust',
-      'ruby': 'ruby',
-      'php': 'php',
       'html': 'html',
       'css': 'css',
       'json': 'json',
