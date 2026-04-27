@@ -1,9 +1,5 @@
 @use '@angular/material' as mat;
 
-html {
-  color-scheme: dark;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -20,9 +16,11 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #161b22;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #30363d;
   border-radius: 3px;
@@ -33,11 +31,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  background: linear-gradient(
+    135deg, #0d1117 0%, #161b22 100%);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3d5afe, #00b0ff) !important;
+  background: linear-gradient(
+    135deg, #3d5afe, #00b0ff) !important;
   color: white !important;
   border-radius: 8px !important;
   font-weight: 600 !important;
@@ -65,4 +65,22 @@ body {
     height: 1px;
     background: #30363d;
   }
+}
+
+// Material dark theme overrides
+.mat-mdc-card {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+}
+
+.mat-mdc-form-field {
+  .mdc-text-field {
+    background: #0d1117 !important;
+  }
+}
+
+.dark-dialog .mat-mdc-dialog-container {
+  background: #161b22 !important;
+  border: 1px solid #30363d;
+  border-radius: 12px !important;
 }

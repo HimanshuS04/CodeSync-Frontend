@@ -1,0 +1,75 @@
+<div class="dialog-container">
+
+  <div class="dialog-header">
+    <h2>
+      <mat-icon>add_circle</mat-icon>
+      Create New Project
+    </h2>
+    <button mat-icon-button (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Project Name</mat-label>
+      <input matInput
+             formControlName="name"
+             placeholder="my-awesome-project">
+      <mat-error *ngIf="form.get('name')?.hasError('required')">
+        Name is required
+      </mat-error>
+      <mat-error *ngIf="form.get('name')?.hasError('minlength')">
+        Minimum 3 characters
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description (optional)</mat-label>
+      <textarea matInput
+                formControlName="description"
+                rows="3"
+                placeholder="What is this project about?">
+      </textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Language</mat-label>
+      <mat-select formControlName="language">
+        <mat-option *ngFor="let lang of languages"
+                    [value]="lang">
+          {{ lang }}
+        </mat-option>
+      </mat-select>
+      <mat-error>Language is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Visibility</mat-label>
+      <mat-select formControlName="visibility">
+        <mat-option value="PUBLIC">
+          🌍 Public
+        </mat-option>
+        <mat-option value="PRIVATE">
+          🔒 Private
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="dialog-actions">
+      <button mat-button
+              type="button"
+              (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-raised-button
+              class="btn-primary"
+              type="submit"
+              [disabled]="form.invalid || loading">
+        {{ loading ? 'Creating...' : 'Create Project' }}
+      </button>
+    </div>
+
+  </form>
+</div>

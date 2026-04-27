@@ -10,14 +10,21 @@ export const routes: Routes = [
   {
     path: 'auth',
     loadChildren: () =>
-      import('././modules/auth/auth.routes')
+      import('./modules/auth/auth.routes')
         .then(m => m.authRoutes)
   },
   {
     path: 'dashboard',
     canActivate: [authGuard],
     loadChildren: () =>
-      import('././modules/dashboard/dashboard.routes')
+      import('./modules/dashboard/dashboard.routes')
         .then(m => m.dashboardRoutes)
+  },
+  {
+    path: 'projects',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/project/project.routes')
+        .then(m => m.projectRoutes)
   }
 ];
