@@ -40,6 +40,17 @@ export class ProjectDetailComponent implements OnInit {
   showDropdown = false;
   private searchTimer: any = null;
 
+  // Members
+  members: any[] = [];
+  loadingMembers = false;
+
+  // Edit mode
+  editMode = false;
+  editName = '';
+  editDesc = '';
+  editVisibility = '';
+  saving = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -63,6 +74,7 @@ export class ProjectDetailComponent implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
         this.checkIfStarred(id);
+        if (this.isOwner) this.loadMembers();
       },
       error: () => {
         this.loading = false;
@@ -71,6 +83,25 @@ export class ProjectDetailComponent implements OnInit {
           'Project not found', 'Close',
           { duration: 3000 });
         this.router.navigate(['/projects']);
+      }
+    });
+  }
+
+  loadMembers(): void {
+    if (!this.project) return;
+    this.loadingMembers = true;
+
+    this.projectService.getMembers(
+      this.project.projectId
+    ).subscribe({
+      next: (members) => {
+        this.members = members;
+        this.loadingMembers = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingMembers = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -99,10 +130,96 @@ export class ProjectDetailComponent implements OnInit {
       });
   }
 
-  // Search users with debounce
+  // Edit Project
+  startEdit(): void {
+    if (!this.project) return;
+    this.editMode = true;
+    this.editName = this.project.name;
+    this.editDesc = this.project.description || '';
+    this.editVisibility = this.project.visibility;
+    this.cdr.detectChanges();
+  }
+
+  cancelEdit(): void {
+    this.editMode = false;
+    this.cdr.detectChanges();
+  }
+
+  saveEdit(): void {
+    if (!this.project || !this.editName.trim()) return;
+    this.saving = true;
+
+    this.projectService.updateProject({
+      projectId: this.project.projectId,
+      name: this.editName.trim(),
+      description: this.editDesc.trim(),
+      visibility: this.editVisibility
+    }).subscribe({
+      next: (updated) => {
+        this.project = updated;
+        this.editMode = false;
+        this.saving = false;
+        this.snackBar.open('Project updated!', 'Close',
+          { duration: 2000 });
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.saving = false;
+        this.snackBar.open(
+          err.error?.message || 'Update failed',
+          'Close', { duration: 3000 });
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Delete Project
+  deleteProject(): void {
+    if (!this.project) return;
+    if (!confirm(
+      `Delete "${this.project.name}" permanently?\nThis cannot be undone!`
+    )) return;
+
+    this.projectService.deleteProject(
+      this.project.projectId
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Project deleted', 'Close',
+          { duration: 2000 });
+        this.router.navigate(['/projects']);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Delete failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  // Remove Member
+  removeMember(userId: string): void {
+    if (!this.project) return;
+    if (!confirm('Remove this member?')) return;
+
+    this.projectService.removeMember(
+      this.project.projectId, userId
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Member removed', 'Close',
+          { duration: 2000 });
+        this.loadMembers();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  // Search Users
   onSearchInput(): void {
     this.selectedUser = null;
-
     if (this.searchQuery.trim().length < 2) {
       this.searchResults = [];
       this.showDropdown = false;
@@ -121,7 +238,6 @@ export class ProjectDetailComponent implements OnInit {
     this.authService.searchUsers(this.searchQuery.trim())
       .subscribe({
         next: (users) => {
-          // Filter out project owner
           this.searchResults = users.filter(
             (u: any) => u.userId !== this.project?.ownerId
           );
@@ -158,15 +274,15 @@ export class ProjectDetailComponent implements OnInit {
         this.searchQuery = '';
         this.selectedUser = null;
         this.searchResults = [];
-        this.snackBar.open(
-          'Member added!', 'Close',
+        this.snackBar.open('Member added!', 'Close',
           { duration: 2000 });
+        this.loadMembers();
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.addingMember = false;
         this.snackBar.open(
-          err.error?.message || 'Failed to add member',
+          err.error?.message || 'Failed',
           'Close', { duration: 3000 });
         this.cdr.detectChanges();
       }
