@@ -1,0 +1,105 @@
+<div class="editor-layout">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-left">
+      <button class="icon-btn" (click)="goBack()">←</button>
+      <button class="icon-btn" (click)="toggleSidebar()">
+        {{ sidebarOpen ? '◀' : '▶' }}
+      </button>
+      <span class="title">⟨/⟩ Editor</span>
+    </div>
+
+    <div class="top-right">
+      <button mat-raised-button
+              class="save-btn"
+              [disabled]="!activeFile
+                || !unsavedFiles.has(activeFile.fileId)
+                || saving"
+              (click)="saveFile()">
+        {{ saving ? 'Saving...' : '💾 Save' }}
+      </button>
+
+      <button mat-raised-button
+              class="new-btn"
+              (click)="createFile()">
+        + New File
+      </button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="editor-body">
+
+    <!-- Sidebar -->
+    <div class="sidebar" *ngIf="sidebarOpen">
+      <div class="sidebar-header">FILES</div>
+      <div class="sidebar-content">
+
+        <div class="empty-msg"
+             *ngIf="fileTree.length === 0 && !loading">
+          <p>No files yet</p>
+          <button mat-stroked-button
+                  (click)="createFile()">
+            Create File
+          </button>
+        </div>
+
+        <app-file-tree
+          *ngIf="fileTree.length > 0"
+          [items]="fileTree"
+          [selectedFileId]="activeFile?.fileId || null"
+          (fileSelected)="onFileSelected($event)"
+          (fileDeleted)="onFileDeleted($event)">
+        </app-file-tree>
+
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <app-file-tabs
+        [openFiles]="openFiles"
+        [activeFileId]="activeFile?.fileId || null"
+        [unsavedFiles]="unsavedFiles"
+        (tabSelected)="onTabSelected($event)"
+        (tabClosed)="onTabClosed($event)">
+      </app-file-tabs>
+
+      <!-- Monaco -->
+      <div class="editor-area" *ngIf="activeFile">
+        <div #editorContainer class="monaco-box"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!activeFile">
+        <h2>⟨/⟩ CodeSync Editor</h2>
+        <p>Select a file from the sidebar to start editing</p>
+        <p class="shortcut">
+          <kbd>Ctrl</kbd> + <kbd>S</kbd> to save
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span *ngIf="activeFile">
+      📄 {{ activeFile.path }}
+    </span>
+    <span class="spacer"></span>
+    <span *ngIf="activeFile" class="lang-tag">
+      {{ activeFile.language }}
+    </span>
+    <span *ngIf="activeFile">
+      {{ activeFile.size }} bytes
+    </span>
+    <span *ngIf="activeFile && unsavedFiles.has(activeFile.fileId)"
+          class="unsaved-tag">
+      ● Unsaved
+    </span>
+  </div>
+
+</div>

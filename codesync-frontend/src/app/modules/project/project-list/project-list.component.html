@@ -3,7 +3,6 @@
 <div class="page">
   <div class="container">
 
-    <!-- Header -->
     <div class="page-header">
       <div>
         <h1>Projects</h1>
@@ -12,8 +11,7 @@
       <button mat-raised-button
               class="btn-primary"
               (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        New Project
+        + New Project
       </button>
     </div>
 
@@ -36,7 +34,6 @@
                [(ngModel)]="searchQuery"
                (ngModelChange)="onSearch()"
                placeholder="Search...">
-        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
 
@@ -49,7 +46,6 @@
     <div class="projects-grid" *ngIf="!loading">
 
       <div class="empty" *ngIf="filteredProjects.length === 0">
-        <mat-icon>folder_open</mat-icon>
         <p>No projects found</p>
         <button mat-raised-button
                 class="btn-primary"
@@ -63,9 +59,6 @@
            (click)="openProject(project.projectId)">
 
         <div class="card-header">
-          <div class="card-icon">
-            <mat-icon>code</mat-icon>
-          </div>
           <span class="badge"
                 [class.public]="project.visibility==='PUBLIC'"
                 [class.private]="project.visibility==='PRIVATE'">
@@ -74,24 +67,21 @@
         </div>
 
         <h3>{{ project.name }}</h3>
+
         <p class="desc">
           {{ project.description || 'No description' }}
         </p>
 
         <div class="card-footer">
           <span class="lang">
-            <mat-icon>terminal</mat-icon>
             {{ project.language }}
           </span>
-            <button mat-icon-button
-            class="star-btn"
-            [class.starred]="isStarred(project.projectId)"
-            (click)="toggleStar($event, project.projectId)">
-            <mat-icon>
-                {{ isStarred(project.projectId) ? 'star' : 'star_border' }}
-            </mat-icon>
+          <span class="star-btn"
+                [class.starred]="isStarred(project.projectId)"
+                (click)="toggleStar($event, project.projectId)">
+            {{ isStarred(project.projectId) ? '★' : '☆' }}
             {{ project.starCount }}
-            </button>
+          </span>
         </div>
 
       </div>

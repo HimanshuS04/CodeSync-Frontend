@@ -1,5 +1,3 @@
-@use '@angular/material' as mat;
-
 * {
   margin: 0;
   padding: 0;
@@ -16,11 +14,9 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: #161b22;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #30363d;
   border-radius: 3px;
@@ -43,13 +39,6 @@ body {
   font-weight: 600 !important;
 }
 
-.btn-google {
-  background: #fff !important;
-  color: #333 !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-}
-
 .divider {
   display: flex;
   align-items: center;
@@ -67,20 +56,13 @@ body {
   }
 }
 
-// Material dark theme overrides
-.mat-mdc-card {
-  background: #161b22 !important;
-  border: 1px solid #30363d !important;
-}
-
-.mat-mdc-form-field {
-  .mdc-text-field {
-    background: #0d1117 !important;
-  }
-}
-
 .dark-dialog .mat-mdc-dialog-container {
   background: #161b22 !important;
   border: 1px solid #30363d;
+  border-radius: 12px !important;
+}
+
+.dark-dialog .mdc-dialog__surface {
+  background: #161b22 !important;
   border-radius: 12px !important;
 }
