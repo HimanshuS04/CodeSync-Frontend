@@ -1,0 +1,271 @@
+<app-navbar></app-navbar>
+
+<div class="admin-page">
+
+  <!-- Sidebar -->
+  <div class="admin-sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚙️</span>
+      <span class="brand-text">Admin Panel</span>
+    </div>
+
+    <nav class="admin-nav">
+      <button [class.active]="activeTab==='dashboard'"
+              (click)="switchTab('dashboard')">
+        📊 Dashboard
+      </button>
+      <button [class.active]="activeTab==='users'"
+              (click)="switchTab('users')">
+        👤 Users
+      </button>
+      <button [class.active]="activeTab==='projects'"
+              (click)="switchTab('projects')">
+        📁 Projects
+      </button>
+      <button [class.active]="activeTab==='sessions'"
+              (click)="switchTab('sessions')">
+        🟢 Sessions
+      </button>
+      <button [class.active]="activeTab==='broadcast'"
+              (click)="switchTab('broadcast')">
+        📢 Broadcast
+      </button>
+    </nav>
+  </div>
+
+  <!-- Content -->
+  <div class="admin-content">
+
+    <!-- Dashboard -->
+    <div *ngIf="activeTab==='dashboard'" class="tab-content">
+      <h1 class="page-title">📊 Platform Overview</h1>
+
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <span class="stat-number">{{ totalUsers }}</span>
+          <span class="stat-label">Total Users</span>
+        </div>
+        <div class="stat-card green">
+          <span class="stat-number">{{ totalProjects }}</span>
+          <span class="stat-label">Total Projects</span>
+        </div>
+        <div class="stat-card purple">
+          <span class="stat-number">{{ totalFiles }}</span>
+          <span class="stat-label">Total Files</span>
+        </div>
+        <div class="stat-card cyan">
+          <span class="stat-number">{{ activeSessions }}</span>
+          <span class="stat-label">Active Sessions</span>
+        </div>
+        <div class="stat-card emerald">
+          <span class="stat-number">{{ totalExecutions }}</span>
+          <span class="stat-label">Total Executions</span>
+        </div>
+        <div class="stat-card amber">
+          <span class="stat-number">{{ completedExecutions }}</span>
+          <span class="stat-label">Successful Runs</span>
+        </div>
+        <div class="stat-card red">
+          <span class="stat-number">{{ failedExecutions }}</span>
+          <span class="stat-label">Failed Runs</span>
+        </div>
+        <div class="stat-card teal">
+          <span class="stat-number">{{ publicProjects }}</span>
+          <span class="stat-label">Public Projects</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div *ngIf="activeTab==='users'" class="tab-content">
+      <h1 class="page-title">👤 User Management</h1>
+
+      <div class="loading-msg" *ngIf="loading">Loading...</div>
+
+      <div class="table-wrapper" *ngIf="!loading">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>
+                <div class="user-cell">
+                  <span class="table-avatar">
+                    {{ user.username.charAt(0).toUpperCase() }}
+                  </span>
+                  {{ user.username }}
+                </div>
+              </td>
+              <td class="email-cell">{{ user.email }}</td>
+              <td>
+                <span class="role-badge"
+                      [class.admin]="user.role==='ADMIN'"
+                      [class.dev]="user.role==='DEVELOPER'">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>
+                <span class="status-dot"
+                      [class.active]="user.isActive"
+                      [class.suspended]="!user.isActive">
+                  {{ user.isActive ? 'Active' : 'Suspended' }}
+                </span>
+              </td>
+              <td class="time-cell">
+                {{ getTimeAgo(user.createdAt) }}
+              </td>
+              <td>
+                <button class="action-btn suspend"
+                        *ngIf="user.isActive && user.role!=='ADMIN'"
+                        (click)="suspendUser(user.userId)">
+                  Suspend
+                </button>
+                <button class="action-btn activate"
+                        *ngIf="!user.isActive"
+                        (click)="reactivateUser(user.userId)">
+                  Reactivate
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div *ngIf="activeTab==='projects'" class="tab-content">
+      <h1 class="page-title">📁 Project Management</h1>
+
+      <div class="loading-msg" *ngIf="loading">Loading...</div>
+
+      <div class="table-wrapper" *ngIf="!loading">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Language</th>
+              <th>Visibility</th>
+              <th>Stars</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let project of projects">
+              <td class="project-name-cell">
+                {{ project.name }}
+              </td>
+              <td>
+                <span class="lang-badge">
+                  {{ project.language }}
+                </span>
+              </td>
+              <td>
+                <span class="vis-badge"
+                      [class.public]="project.visibility==='PUBLIC'"
+                      [class.private]="project.visibility==='PRIVATE'">
+                  {{ project.visibility }}
+                </span>
+              </td>
+              <td>★ {{ project.starCount }}</td>
+              <td class="time-cell">
+                {{ getTimeAgo(project.createdAt) }}
+              </td>
+              <td>
+                <button class="action-btn danger"
+                        (click)="deleteProject(project.projectId)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div *ngIf="activeTab==='sessions'" class="tab-content">
+      <h1 class="page-title">🟢 Active Sessions</h1>
+
+      <div class="loading-msg" *ngIf="loading">Loading...</div>
+
+      <div class="sessions-grid" *ngIf="!loading">
+        <div class="empty-msg"
+             *ngIf="sessions.length === 0">
+          No active sessions
+        </div>
+
+        <div class="session-card"
+             *ngFor="let s of sessions">
+          <div class="session-header">
+            <span class="session-status">🟢 ACTIVE</span>
+            <span class="session-time">
+              {{ getTimeAgo(s.createdAt) }}
+            </span>
+          </div>
+          <div class="session-info">
+            <span class="session-label">Session ID</span>
+            <span class="session-value monospace">
+              {{ s.sessionId.substring(0, 16) }}...
+            </span>
+          </div>
+          <div class="session-info">
+            <span class="session-label">Participants</span>
+            <span class="session-value">
+              {{ s.participants.length }} /
+              {{ s.maxParticipants }}
+            </span>
+          </div>
+          <div class="session-participants">
+            <span class="participant-dot"
+                  *ngFor="let p of s.participants"
+                  [style.background]="p.color"
+                  [title]="p.username">
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Broadcast -->
+    <div *ngIf="activeTab==='broadcast'" class="tab-content">
+      <h1 class="page-title">📢 Send Broadcast</h1>
+
+      <div class="broadcast-card">
+        <p class="broadcast-desc">
+          Send a notification to all platform users
+        </p>
+
+        <input type="text"
+               class="broadcast-input"
+               [(ngModel)]="broadcastTitle"
+               placeholder="Notification title">
+
+        <textarea class="broadcast-textarea"
+                  [(ngModel)]="broadcastMessage"
+                  placeholder="Notification message..."
+                  rows="4">
+        </textarea>
+
+        <button class="broadcast-btn"
+                [disabled]="!broadcastTitle.trim()
+                  || !broadcastMessage.trim()
+                  || sendingBroadcast"
+                (click)="sendBroadcast()">
+          {{ sendingBroadcast
+             ? 'Sending...'
+             : '📢 Send to All Users' }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

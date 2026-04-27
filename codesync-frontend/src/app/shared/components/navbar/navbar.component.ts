@@ -32,6 +32,8 @@ export class NavbarComponent implements OnInit {
   notifications: AppNotification[] = [];
   unreadCount = 0;
   loadingNotifications = false;
+  isAdmin = false;
+
 
   constructor(
     private authService: AuthService,
@@ -45,9 +47,9 @@ export class NavbarComponent implements OnInit {
     this.authService.currentUser$
       .subscribe(u => {
         this.user = u;
+        this.isAdmin = u?.role === 'ADMIN';
         this.cdr.markForCheck();
       });
-
     this.loadUnreadCount();
   }
 
