@@ -93,4 +93,9 @@ export class AuthService {
     const stored = localStorage.getItem('codesync_user');
     return stored ? JSON.parse(stored) : null;
   }
+  searchUsers(query: string): Observable<any[]> {
+    return this.http.post<any[]>(
+      `${this.baseUrl}/api/auth/search`,
+      { query });
+  }
 }

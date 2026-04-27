@@ -295,13 +295,16 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.commentCount = 0;
 
     // Load comment count for badge
-    this.commentService.getCount(file.fileId)
-      .subscribe({
-        next: (result) => {
-          this.commentCount = result.count;
-          this.cdr.detectChanges();
-        }
-      });
+    // Load comment count only for editable users
+    if (this.canEdit) {
+      this.commentService.getCount(file.fileId)
+        .subscribe({
+          next: (result) => {
+            this.commentCount = result.count;
+            this.cdr.detectChanges();
+          }
+        });
+    }
 
     if (!this.editor) {
       setTimeout(() => {
@@ -479,14 +482,16 @@ export class EditorComponent implements OnInit, OnDestroy {
   }
 
   toggleHistory(): void {
-    if (this.rightPanel === 'history') {
-      this.rightPanel = 'none';
-    } else {
-      this.rightPanel = 'history';
-      this.loadHistory();
-    }
-    this.cdr.detectChanges();
+  if (!this.canEdit) return;
+
+  if (this.rightPanel === 'history') {
+    this.rightPanel = 'none';
+  } else {
+    this.rightPanel = 'history';
+    this.loadHistory();
   }
+  this.cdr.detectChanges();
+}
 
   loadHistory(): void {
     if (!this.activeFile) return;
@@ -865,16 +870,18 @@ export class EditorComponent implements OnInit, OnDestroy {
       { duration: 1500 });
   }
   // ===== Comments =====
-toggleComments(): void {
-    if (this.rightPanel === 'comments') {
-      this.rightPanel = 'none';
-    } else {
-      this.rightPanel = 'comments';
-      this.loadComments();
-    }
-    this.cdr.detectChanges();
-  }
 
+toggleComments(): void {
+  if (!this.canEdit) return;
+
+  if (this.rightPanel === 'comments') {
+    this.rightPanel = 'none';
+  } else {
+    this.rightPanel = 'comments';
+    this.loadComments();
+  }
+  this.cdr.detectChanges();
+}
   loadComments(): void {
     if (!this.activeFile) return;
     this.loadingComments = true;

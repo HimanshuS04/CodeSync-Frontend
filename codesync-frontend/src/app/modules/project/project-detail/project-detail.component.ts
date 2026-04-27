@@ -1,9 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule }
   from '@angular/material/snack-bar';
 import { NavbarComponent }
@@ -18,9 +17,8 @@ import { AuthService }
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
-    MatIconModule,
-    MatTabsModule,
     MatSnackBarModule,
     NavbarComponent
   ],
@@ -32,6 +30,15 @@ export class ProjectDetailComponent implements OnInit {
   loading = true;
   isOwner = false;
   isStarred = false;
+
+  // Add member
+  searchQuery = '';
+  searchResults: any[] = [];
+  selectedUser: any = null;
+  searching = false;
+  addingMember = false;
+  showDropdown = false;
+  private searchTimer: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -54,12 +61,12 @@ export class ProjectDetailComponent implements OnInit {
         const userId = this.authService.getUserId();
         this.isOwner = project.ownerId === userId;
         this.loading = false;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         this.checkIfStarred(id);
       },
       error: () => {
         this.loading = false;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         this.snackBar.open(
           'Project not found', 'Close',
           { duration: 3000 });
@@ -72,7 +79,7 @@ export class ProjectDetailComponent implements OnInit {
     this.projectService.getStarredIds().subscribe({
       next: (ids) => {
         this.isStarred = ids.includes(projectId);
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       }
     });
   }
@@ -84,15 +91,93 @@ export class ProjectDetailComponent implements OnInit {
         next: (res) => {
           this.isStarred = res.isStarred;
           if (this.project) {
-            if (res.isStarred) {
-              this.project.starCount++;
-            } else {
-              this.project.starCount--;
-            }
+            if (res.isStarred) this.project.starCount++;
+            else this.project.starCount--;
           }
-          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         }
       });
+  }
+
+  // Search users with debounce
+  onSearchInput(): void {
+    this.selectedUser = null;
+
+    if (this.searchQuery.trim().length < 2) {
+      this.searchResults = [];
+      this.showDropdown = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.searchUsers();
+    }, 300);
+  }
+
+  searchUsers(): void {
+    this.searching = true;
+    this.authService.searchUsers(this.searchQuery.trim())
+      .subscribe({
+        next: (users) => {
+          // Filter out project owner
+          this.searchResults = users.filter(
+            (u: any) => u.userId !== this.project?.ownerId
+          );
+          this.showDropdown = this.searchResults.length > 0;
+          this.searching = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.searchResults = [];
+          this.showDropdown = false;
+          this.searching = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  selectUser(user: any): void {
+    this.selectedUser = user;
+    this.searchQuery = user.username;
+    this.showDropdown = false;
+    this.cdr.detectChanges();
+  }
+
+  addMember(): void {
+    if (!this.project || !this.selectedUser) return;
+    this.addingMember = true;
+
+    this.projectService.addMember(
+      this.project.projectId,
+      this.selectedUser.userId
+    ).subscribe({
+      next: () => {
+        this.addingMember = false;
+        this.searchQuery = '';
+        this.selectedUser = null;
+        this.searchResults = [];
+        this.snackBar.open(
+          'Member added!', 'Close',
+          { duration: 2000 });
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.addingMember = false;
+        this.snackBar.open(
+          err.error?.message || 'Failed to add member',
+          'Close', { duration: 3000 });
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeDropdown(): void {
+    setTimeout(() => {
+      this.showDropdown = false;
+      this.cdr.detectChanges();
+    }, 200);
   }
 
   openEditor(): void {
