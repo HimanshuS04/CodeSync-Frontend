@@ -89,7 +89,7 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  private getStoredUser(): AuthResponse | null {
+  getStoredUser(): AuthResponse | null {
     const stored = localStorage.getItem('codesync_user');
     return stored ? JSON.parse(stored) : null;
   }
