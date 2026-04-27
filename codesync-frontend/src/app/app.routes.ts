@@ -33,5 +33,12 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./modules/editor/editor.routes')
         .then(m => m.editorRoutes)
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/admin/admin.routes')
+        .then(m => m.adminRoutes)
   }
 ];

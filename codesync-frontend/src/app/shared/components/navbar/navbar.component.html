@@ -13,6 +13,10 @@
     <button mat-button routerLink="/projects">
       Projects
     </button>
+    <button mat-button routerLink="/admin"
+            *ngIf="isAdmin">
+      ⚙️ Admin
+    </button>
   </nav>
 
   <!-- Notifications -->
@@ -20,7 +24,7 @@
           class="notif-btn"
           [matMenuTriggerFor]="notifMenu"
           (click)="openNotifications()">
-    🔔
+    Alerts 📢
     <span class="notif-badge" *ngIf="unreadCount > 0">
       {{ unreadCount }}
     </span>

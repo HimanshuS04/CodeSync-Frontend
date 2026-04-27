@@ -9,13 +9,13 @@
 
     <div *ngIf="!loading && project">
 
-      <button mat-button
-              class="back-btn"
+      <button mat-button class="back-btn"
               (click)="goBack()">
         ← Back to Projects
       </button>
 
-      <div class="project-header">
+      <!-- View Mode -->
+      <div class="project-header" *ngIf="!editMode">
         <div class="header-left">
           <h1>{{ project.name }}</h1>
           <p>{{ project.description || 'No description' }}</p>
@@ -40,10 +40,61 @@
                   (click)="openEditor()">
             Open Editor
           </button>
+
+          <button mat-stroked-button
+                  *ngIf="isOwner"
+                  (click)="startEdit()">
+            ✏️ Edit
+          </button>
+
+          <button mat-stroked-button
+                  class="delete-btn"
+                  *ngIf="isOwner"
+                  (click)="deleteProject()">
+            🗑️ Delete
+          </button>
         </div>
       </div>
 
-      <div class="info-grid">
+      <!-- Edit Mode -->
+      <div class="edit-section" *ngIf="editMode">
+        <h2>Edit Project</h2>
+
+        <div class="edit-form">
+          <label>Name</label>
+          <input type="text"
+                 class="edit-input"
+                 [(ngModel)]="editName">
+
+          <label>Description</label>
+          <textarea class="edit-textarea"
+                    [(ngModel)]="editDesc"
+                    rows="3">
+          </textarea>
+
+          <label>Visibility</label>
+          <select class="edit-select"
+                  [(ngModel)]="editVisibility">
+            <option value="PUBLIC">Public</option>
+            <option value="PRIVATE">Private</option>
+          </select>
+
+          <div class="edit-actions">
+            <button class="cancel-btn"
+                    (click)="cancelEdit()">
+              Cancel
+            </button>
+            <button class="save-edit-btn"
+                    [disabled]="!editName.trim() || saving"
+                    (click)="saveEdit()">
+              {{ saving ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Grid -->
+      <div class="info-grid" *ngIf="!editMode">
         <div class="info-card">
           <p class="label">Language</p>
           <p class="value">{{ project.language }}</p>
@@ -64,65 +115,88 @@
         </div>
       </div>
 
-      <!-- Add Member Section - Owner Only -->
+      <!-- Members Section - Owner Only -->
       <div class="member-section" *ngIf="isOwner">
-        <h3>Add Team Member</h3>
-        <div class="add-member-wrapper">
-          <div class="search-box">
-            <input type="text"
-                   class="member-input"
-                   [(ngModel)]="searchQuery"
-                   (ngModelChange)="onSearchInput()"
-                   (blur)="closeDropdown()"
-                   placeholder="Search username..."
-                   autocomplete="off">
+        <h3>Team Members</h3>
 
-            <!-- Search indicator -->
-            <span class="search-indicator"
-                  *ngIf="searching">
-              Searching...
+        <!-- Current Members -->
+        <div class="members-list" *ngIf="!loadingMembers">
+          <div class="member-item"
+               *ngFor="let m of members">
+            <span class="member-avatar">
+              {{ m.role.charAt(0) }}
             </span>
+            <div class="member-info">
+              <span class="member-role">{{ m.role }}</span>
+              <span class="member-id">
+                {{ m.userId.substring(0, 8) }}...
+              </span>
+            </div>
+            <button class="remove-member-btn"
+                    *ngIf="m.role !== 'OWNER'"
+                    (click)="removeMember(m.userId)">
+              ✕ Remove
+            </button>
+          </div>
+        </div>
 
-            <!-- Dropdown -->
-            <div class="user-dropdown"
-                 *ngIf="showDropdown">
-              <div class="dropdown-item"
-                   *ngFor="let user of searchResults"
-                   (mousedown)="selectUser(user)">
-                <span class="dropdown-avatar">
-                  {{ user.username.charAt(0).toUpperCase() }}
-                </span>
-                <div class="dropdown-info">
-                  <span class="dropdown-name">
-                    {{ user.username }}
+        <!-- Add Member -->
+        <div class="add-member-section">
+          <h4>Add Member</h4>
+          <div class="add-member-wrapper">
+            <div class="search-box">
+              <input type="text"
+                     class="member-input"
+                     [(ngModel)]="searchQuery"
+                     (ngModelChange)="onSearchInput()"
+                     (blur)="closeDropdown()"
+                     placeholder="Search username..."
+                     autocomplete="off">
+
+              <span class="search-indicator"
+                    *ngIf="searching">
+                Searching...
+              </span>
+
+              <div class="user-dropdown"
+                   *ngIf="showDropdown">
+                <div class="dropdown-item"
+                     *ngFor="let user of searchResults"
+                     (mousedown)="selectUser(user)">
+                  <span class="dropdown-avatar">
+                    {{ user.username.charAt(0).toUpperCase() }}
                   </span>
-                  <span class="dropdown-email">
-                    {{ user.email }}
-                  </span>
+                  <div class="dropdown-info">
+                    <span class="dropdown-name">
+                      {{ user.username }}
+                    </span>
+                    <span class="dropdown-email">
+                      {{ user.email }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <button class="add-member-btn"
+                    [disabled]="!selectedUser || addingMember"
+                    (click)="addMember()">
+              {{ addingMember ? 'Adding...' : '+ Add' }}
+            </button>
           </div>
 
-          <button class="add-member-btn"
-                  [disabled]="!selectedUser || addingMember"
-                  (click)="addMember()">
-            {{ addingMember ? 'Adding...' : '+ Add' }}
-          </button>
-        </div>
-
-        <!-- Selected user preview -->
-        <div class="selected-user"
-             *ngIf="selectedUser">
-          <span class="selected-avatar">
-            {{ selectedUser.username.charAt(0).toUpperCase() }}
-          </span>
-          <span class="selected-name">
-            {{ selectedUser.username }}
-          </span>
-          <span class="selected-email">
-            {{ selectedUser.email }}
-          </span>
+          <div class="selected-user"
+               *ngIf="selectedUser">
+            <span class="selected-avatar">
+              {{ selectedUser.username.charAt(0).toUpperCase() }}
+            </span>
+            <span class="selected-name">
+              {{ selectedUser.username }}
+            </span>
+            <span class="selected-email">
+              {{ selectedUser.email }}
+            </span>
+          </div>
         </div>
       </div>
 

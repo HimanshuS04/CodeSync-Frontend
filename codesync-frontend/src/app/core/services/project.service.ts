@@ -65,8 +65,13 @@ export class ProjectService {
       { query });
   }
 
-  updateProject(data: UpdateProjectRequest): Observable<Project> {
-    return this.http.put<Project>(
+  updateProject(data: {
+    projectId: string;
+    name?: string;
+    description?: string;
+    visibility?: string;
+  }): Observable<any> {
+    return this.http.put(
       `${this.baseUrl}/api/projects/update`, data);
   }
 
@@ -108,4 +113,9 @@ export class ProjectService {
       `${this.baseUrl}/api/projects/members/add-by-username`,
       { projectId, username });
   }
+  getMembers(projectId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/projects/members/${projectId}`);
+  }
+  
 }
