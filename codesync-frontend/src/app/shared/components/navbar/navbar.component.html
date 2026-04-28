@@ -87,8 +87,11 @@
       <p class="menu-email">{{ user?.email }}</p>
     </div>
     <mat-divider></mat-divider>
+    <button mat-menu-item routerLink="/profile">
+      👤 Profile
+    </button>
     <button mat-menu-item (click)="logout()">
-      Logout
+      🚪 Logout
     </button>
   </mat-menu>
 

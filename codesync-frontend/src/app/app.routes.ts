@@ -40,5 +40,12 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./modules/admin/admin.routes')
         .then(m => m.adminRoutes)
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/profile/profile.routes')
+        .then(m => m.profileRoutes)
   }
 ];

@@ -1015,3 +1015,90 @@
 .reply-item {
   padding: 6px 0;
 }
+// Execution History
+.run-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.run-item {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 10px;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: #484f58;
+  }
+}
+
+.run-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.run-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &.success { color: #3fb950; }
+  &.failed { color: #f85149; }
+  &.timeout { color: #f0c040; }
+}
+
+.run-time {
+  font-size: 0.68rem;
+  color: #484f58;
+}
+
+.run-details {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.run-lang {
+  font-size: 0.72rem;
+  background: rgba(61, 90, 254, 0.12);
+  color: #3d5afe;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.run-metric {
+  font-size: 0.72rem;
+  color: #8b949e;
+}
+
+.run-output {
+  pre {
+    font-family: monospace;
+    font-size: 0.72rem;
+    color: #3fb950;
+    background: rgba(63, 185, 80, 0.05);
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
+.run-error {
+  pre {
+    font-family: monospace;
+    font-size: 0.72rem;
+    color: #f85149;
+    background: rgba(248, 81, 73, 0.05);
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}

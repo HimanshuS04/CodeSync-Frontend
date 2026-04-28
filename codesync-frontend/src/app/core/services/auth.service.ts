@@ -43,16 +43,21 @@ export class AuthService {
   }
 
   getProfile(): Observable<User> {
-    const userId = this.getStoredUser()?.token;
-    return this.http.post<User>(
-      `${this.baseUrl}/api/auth/profile`,
-      { userId: this.getUserId() });
+    return this.http.get<User>(
+      `${this.baseUrl}/api/auth/profile`);
   }
 
   updateProfile(data: any): Observable<User> {
     return this.http.put<User>(
       `${this.baseUrl}/api/auth/profile`,
       { ...data, userId: this.getUserId() });
+  }
+  changePassword(data: {
+    oldPassword: string;
+    newPassword: string;
+  }): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/api/auth/password`, data);
   }
 
   logout(): void {

@@ -65,6 +65,9 @@ export class EditorComponent implements OnInit, OnDestroy {
   showOutput = false;
   executionResult: ExecutionResult | null = null;
   activeOutputTab: 'output' | 'error' | 'info' = 'output';
+  // Execution history
+  executionHistory: ExecutionResult[] = [];
+  loadingExecutionHistory = false;
 
   // Version
   snapshots: SnapshotResponse[] = [];
@@ -88,7 +91,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   commentCount = 0;
 
   // Right panel
-  rightPanel: 'none' | 'history' | 'collab' | 'comments' = 'none';
+  rightPanel: 'none' | 'history' | 'collab' | 'comments' | 'runs' = 'none';
 
   @ViewChild('editorContainer')
   editorContainer!: ElementRef;
@@ -285,6 +288,29 @@ export class EditorComponent implements OnInit, OnDestroy {
         }
       });
   }
+  onFileRenamed(event: {fileId: string, newName: string}): void {
+    this.fileService.renameFile(
+      event.fileId, event.newName
+    ).subscribe({
+      next: () => {
+        this.loadFileTree();
+        // Update open file tab if renamed file is open
+        const openFile = this.openFiles
+          .find(f => f.fileId === event.fileId);
+        if (openFile) {
+          openFile.name = event.newName;
+          this.cdr.detectChanges();
+        }
+        this.snackBar.open('File renamed', 'Close',
+          { duration: 1500 });
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Rename failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
 
   setActiveFile(file: CodeFile): void {
     this.activeFile = file;
@@ -415,8 +441,28 @@ export class EditorComponent implements OnInit, OnDestroy {
           .find(f => f.fileId === fileId);
         if (file) this.onTabClosed(file);
         this.loadFileTree();
-        this.snackBar.open('File deleted', 'Close',
-          { duration: 2000 });
+
+        // Snackbar with UNDO
+        const snackRef = this.snackBar.open(
+          'File deleted', 'UNDO',
+          { duration: 5000 });
+
+        snackRef.onAction().subscribe(() => {
+          this.fileService.restoreFile(fileId)
+            .subscribe({
+              next: () => {
+                this.loadFileTree();
+                this.snackBar.open(
+                  'File restored!', 'Close',
+                  { duration: 1500 });
+              },
+              error: () => {
+                this.snackBar.open(
+                  'Restore failed', 'Close',
+                  { duration: 3000 });
+              }
+            });
+        });
       }
     });
   }
@@ -442,6 +488,12 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.executionResult = result;
         if (result.stderr || result.compileOutput)
           this.activeOutputTab = 'error';
+
+        // Refresh execution history if panel open
+        if (this.rightPanel === 'runs') {
+          this.loadExecutionHistory();
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -1002,6 +1054,31 @@ toggleComments(): void {
           this.snackBar.open(
             err.error?.message || 'Failed',
             'Close', { duration: 3000 });
+        }
+      });
+  }
+  toggleRuns(): void {
+    if (this.rightPanel === 'runs') {
+      this.rightPanel = 'none';
+    } else {
+      this.rightPanel = 'runs';
+      this.loadExecutionHistory();
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadExecutionHistory(): void {
+    this.loadingExecutionHistory = true;
+    this.executionService.getByProject(this.projectId)
+      .subscribe({
+        next: (runs) => {
+          this.executionHistory = runs;
+          this.loadingExecutionHistory = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loadingExecutionHistory = false;
+          this.cdr.detectChanges();
         }
       });
   }
