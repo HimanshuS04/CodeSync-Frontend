@@ -4,12 +4,6 @@ import { FormBuilder, FormGroup,
          Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogModule }
   from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule }
-  from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule }
   from '@angular/material/snack-bar';
 import { ProjectService }
@@ -22,11 +16,6 @@ import { ProjectService }
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
-    MatButtonModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatIconModule,
     MatSnackBarModule
   ],
   templateUrl: './create-project.component.html',
@@ -38,7 +27,7 @@ export class CreateProjectComponent {
 
   languages = [
     'Python', 'JavaScript', 'TypeScript',
-    'Java', 'C', 'C++','C#'
+    'Java', 'C', 'C++', 'C#'
   ];
 
   constructor(
@@ -65,17 +54,17 @@ export class CreateProjectComponent {
 
     this.projectService.createProject(
       this.form.value).subscribe({
-        next: (project) => {
+        next: () => {
           this.loading = false;
           this.snackBar.open(
             'Project created!', 'Close',
             { duration: 3000 });
           this.dialogRef.close(true);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.loading = false;
           this.snackBar.open(
-            err.error?.message || 'Failed to create project',
+            err.error?.message || 'Failed',
             'Close', { duration: 3000 });
         }
       });
