@@ -1,13 +1,37 @@
 .dashboard {
   min-height: 100vh;
-  background: #0d1117;
+  background-color: #0d1117;
+  background-image: url('/back.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(67, 78, 93, 0.6);
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .hero {
   background: linear-gradient(
-    135deg, #161b22 0%, #0d1117 100%);
-  border-bottom: 1px solid #30363d;
+    135deg,
+    rgba(22, 27, 34, 0.7) 0%,
+    rgba(13, 17, 23, 0.6) 100%);
+  border-bottom: 1px solid rgba(48, 54, 61, 0.5);
   padding: 3rem 2rem;
+  backdrop-filter: blur(10px);
 
   .hero-content {
     max-width: 1200px;
@@ -50,9 +74,6 @@
   margin-bottom: 1.5rem;
 
   h2 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-size: 1.2rem;
     font-weight: 600;
     color: #e6edf3;
@@ -71,8 +92,8 @@
 }
 
 .project-card {
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: rgba(22, 27, 34, 0.75);
+  border: 1px solid rgba(48, 54, 61, 0.6);
   border-radius: 10px;
   padding: 1.25rem;
   cursor: pointer;
@@ -80,11 +101,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
   &:hover {
     border-color: #3d5afe;
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(61, 90, 254, 0.15);
+    box-shadow: 0 4px 20px rgba(61, 90, 254, 0.2);
+    background: rgba(22, 27, 34, 0.85);
   }
 
   h3 {
@@ -109,7 +133,6 @@
   }
 }
 
-// Create card - NO mat-icon override here
 .create-card {
   display: flex;
   flex-direction: column;
@@ -119,11 +142,6 @@
   border-style: dashed;
   color: #8b949e;
   min-height: 150px;
-
-  // Use class instead of element selector
-  .create-icon {
-    color: #3d5afe;
-  }
 
   &:hover {
     color: #3d5afe;
@@ -135,11 +153,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-// Use class not element selector for icon color
-.project-icon-color {
-  color: #3d5afe;
 }
 
 .visibility-badge {

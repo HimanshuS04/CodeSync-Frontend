@@ -2,65 +2,82 @@
 
   <div class="dialog-header">
     <h2>Create New Project</h2>
-    <button mat-icon-button (click)="onCancel()">
-      ✕
-    </button>
+    <button class="close-btn" (click)="onCancel()">✕</button>
   </div>
+
+  <p class="dialog-desc">
+    Start a new coding project and collaborate with your team
+  </p>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Project Name</mat-label>
-      <input matInput
+    <div class="form-group">
+      <label>Project Name</label>
+      <input type="text"
+             class="form-input"
              formControlName="name"
              placeholder="my-awesome-project">
-      <mat-error *ngIf="form.get('name')?.hasError('required')">
+      <span class="error-text"
+            *ngIf="form.get('name')?.touched
+                   && form.get('name')?.hasError('required')">
         Name is required
-      </mat-error>
-      <mat-error *ngIf="form.get('name')?.hasError('minlength')">
+      </span>
+      <span class="error-text"
+            *ngIf="form.get('name')?.touched
+                   && form.get('name')?.hasError('minlength')">
         Minimum 3 characters
-      </mat-error>
-    </mat-form-field>
+      </span>
+    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Description (optional)</mat-label>
-      <textarea matInput
+    <div class="form-group">
+      <label>Description
+        <span class="optional">(optional)</span>
+      </label>
+      <textarea class="form-textarea"
                 formControlName="description"
                 rows="3"
                 placeholder="What is this project about?">
       </textarea>
-    </mat-form-field>
+    </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Language</mat-label>
-      <mat-select formControlName="language">
-        <mat-option *ngFor="let lang of languages"
-                    [value]="lang">
-          {{ lang }}
-        </mat-option>
-      </mat-select>
-      <mat-error>Language is required</mat-error>
-    </mat-form-field>
+    <div class="form-row">
+      <div class="form-group half">
+        <label>Language</label>
+        <select class="form-select"
+                formControlName="language">
+          <option value="" disabled>Select language</option>
+          <option *ngFor="let lang of languages"
+                  [value]="lang">
+            {{ lang }}
+          </option>
+        </select>
+        <span class="error-text"
+              *ngIf="form.get('language')?.touched
+                     && form.get('language')?.hasError('required')">
+          Language is required
+        </span>
+      </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Visibility</mat-label>
-      <mat-select formControlName="visibility">
-        <mat-option value="PUBLIC">Public</mat-option>
-        <mat-option value="PRIVATE">Private</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <div class="form-group half">
+        <label>Visibility</label>
+        <select class="form-select"
+                formControlName="visibility">
+          <option value="PUBLIC">🌍 Public</option>
+          <option value="PRIVATE">🔒 Private</option>
+        </select>
+      </div>
+    </div>
 
     <div class="dialog-actions">
-      <button mat-button
-              type="button"
+      <button type="button"
+              class="cancel-btn"
               (click)="onCancel()">
         Cancel
       </button>
-      <button mat-raised-button
-              class="btn-primary"
-              type="submit"
+      <button type="submit"
+              class="create-btn"
               [disabled]="form.invalid || loading">
-        {{ loading ? 'Creating...' : 'Create Project' }}
+        {{ loading ? 'Creating...' : '🚀 Create Project' }}
       </button>
     </div>
 

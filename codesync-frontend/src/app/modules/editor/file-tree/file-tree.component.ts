@@ -16,6 +16,7 @@ export class FileTreeComponent {
 
   @Output() fileSelected = new EventEmitter<FileTreeItem>();
   @Output() fileDeleted = new EventEmitter<string>();
+  @Output() fileRenamed = new EventEmitter<{fileId: string, newName: string}>();
 
   expandedFolders: Set<string> = new Set();
 
@@ -40,5 +41,18 @@ export class FileTreeComponent {
     if (confirm('Delete this file?')) {
       this.fileDeleted.emit(fileId);
     }
+  }
+onRename(event: Event, item: FileTreeItem): void {
+    event.stopPropagation();
+    if (!item.fileId) return;
+
+    const newName = prompt(
+      'Enter new name:', item.name);
+    if (!newName || newName === item.name) return;
+
+    this.fileRenamed.emit({
+      fileId: item.fileId,
+      newName: newName
+    });
   }
 }

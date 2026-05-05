@@ -35,4 +35,8 @@ export class ExecutionService {
     return this.http.post<ExecutionResult>(
       `${this.baseUrl}/api/executions/run`, data);
   }
+  getByProject(projectId: string): Observable<ExecutionResult[]> {
+    return this.http.get<ExecutionResult[]>(
+      `${this.baseUrl}/api/executions/project/${projectId}`);
+  }
 }

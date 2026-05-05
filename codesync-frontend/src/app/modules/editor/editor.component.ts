@@ -65,6 +65,9 @@ export class EditorComponent implements OnInit, OnDestroy {
   showOutput = false;
   executionResult: ExecutionResult | null = null;
   activeOutputTab: 'output' | 'error' | 'info' = 'output';
+  // Execution history
+  executionHistory: ExecutionResult[] = [];
+  loadingExecutionHistory = false;
 
   // Version
   snapshots: SnapshotResponse[] = [];
@@ -88,7 +91,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   commentCount = 0;
 
   // Right panel
-  rightPanel: 'none' | 'history' | 'collab' | 'comments' = 'none';
+  rightPanel: 'none' | 'history' | 'collab' | 'comments' | 'runs' = 'none';
 
   @ViewChild('editorContainer')
   editorContainer!: ElementRef;
@@ -196,57 +199,48 @@ export class EditorComponent implements OnInit, OnDestroy {
         padding: { top: 8 },
         tabSize: 2,
         wordWrap: 'on',
-        readOnly: !this.canEdit,
         autoClosingBrackets: 'always',
         autoClosingQuotes: 'always'
       });
 
-    if (this.canEdit) {
-      this.editor.onDidChangeModelContent(
-        (e: any) => {
-          if (this.ignoreNextChange) {
-            this.ignoreNextChange = false;
-            return;
-          }
+    this.editor.onDidChangeModelContent(() => {
+      if (this.ignoreNextChange) {
+        this.ignoreNextChange = false;
+        return;
+      }
 
-          if (this.activeFile) {
-            this.editorContent =
-              this.editor.getValue();
-            this.unsavedFiles.add(
-              this.activeFile.fileId);
+      if (this.activeFile) {
+        this.editorContent = this.editor.getValue();
+        this.unsavedFiles.add(this.activeFile.fileId);
 
-            // Send to collab if active
-            if (this.isCollabActive) {
-              this.sendCollabEdits(e);
-            }
+        if (this.isCollabActive) {
+          this.sendCollabEdits(event);
+        }
 
-            this.cdr.detectChanges();
-          }
-        });
+        this.cdr.detectChanges();
+      }
+    });
 
-      // Cursor position change
-      this.editor.onDidChangeCursorPosition(
-        (e: any) => {
-          if (this.isCollabActive
-              && this.collabSession) {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => {
-              this.collabService.sendCursor(
-                this.collabSession!.sessionId,
-                e.position.lineNumber,
-                e.position.column,
-                this.myColor
-              );
-            }, 100);
-          }
-        });
+    this.editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      () => this.saveFile()
+    );
 
-      this.editor.addCommand(
-        monaco.KeyMod.CtrlCmd
-          | monaco.KeyCode.KeyS,
-        () => this.saveFile()
-      );
-    }
+    this.editor.onDidChangeCursorPosition(
+      (e: any) => {
+        if (this.isCollabActive
+            && this.collabSession) {
+          clearTimeout(this.debounceTimer);
+          this.debounceTimer = setTimeout(() => {
+            this.collabService.sendCursor(
+              this.collabSession!.sessionId,
+              e.position.lineNumber,
+              e.position.column,
+              this.myColor
+            );
+          }, 100);
+        }
+      });
   }
 
   // ===== File Operations =====
@@ -285,6 +279,29 @@ export class EditorComponent implements OnInit, OnDestroy {
         }
       });
   }
+  onFileRenamed(event: {fileId: string, newName: string}): void {
+    this.fileService.renameFile(
+      event.fileId, event.newName
+    ).subscribe({
+      next: () => {
+        this.loadFileTree();
+        // Update open file tab if renamed file is open
+        const openFile = this.openFiles
+          .find(f => f.fileId === event.fileId);
+        if (openFile) {
+          openFile.name = event.newName;
+          this.cdr.detectChanges();
+        }
+        this.snackBar.open('File renamed', 'Close',
+          { duration: 1500 });
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err.error?.message || 'Rename failed',
+          'Close', { duration: 3000 });
+      }
+    });
+  }
 
   setActiveFile(file: CodeFile): void {
     this.activeFile = file;
@@ -294,8 +311,6 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.comments = [];
     this.commentCount = 0;
 
-    // Load comment count for badge
-    // Load comment count only for editable users
     if (this.canEdit) {
       this.commentService.getCount(file.fileId)
         .subscribe({
@@ -320,6 +335,7 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   updateEditorContent(file: CodeFile): void {
     if (!this.editor) return;
+
     const oldModel = this.editor.getModel();
     const newModel = monaco.editor.createModel(
       file.content,
@@ -415,8 +431,28 @@ export class EditorComponent implements OnInit, OnDestroy {
           .find(f => f.fileId === fileId);
         if (file) this.onTabClosed(file);
         this.loadFileTree();
-        this.snackBar.open('File deleted', 'Close',
-          { duration: 2000 });
+
+        // Snackbar with UNDO
+        const snackRef = this.snackBar.open(
+          'File deleted', 'UNDO',
+          { duration: 5000 });
+
+        snackRef.onAction().subscribe(() => {
+          this.fileService.restoreFile(fileId)
+            .subscribe({
+              next: () => {
+                this.loadFileTree();
+                this.snackBar.open(
+                  'File restored!', 'Close',
+                  { duration: 1500 });
+              },
+              error: () => {
+                this.snackBar.open(
+                  'Restore failed', 'Close',
+                  { duration: 3000 });
+              }
+            });
+        });
       }
     });
   }
@@ -442,6 +478,12 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.executionResult = result;
         if (result.stderr || result.compileOutput)
           this.activeOutputTab = 'error';
+
+        // Refresh execution history if panel open
+        if (this.rightPanel === 'runs') {
+          this.loadExecutionHistory();
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -727,12 +769,12 @@ export class EditorComponent implements OnInit, OnDestroy {
   }
 
   sendCollabEdits(e: any): void {
-    if (!this.collabSession) return;
+    if (!this.collabSession || !this.isCollabActive)
+      return;
 
     const userId = this.authService.getUserId() || '';
 
     for (const change of e.changes) {
-      // DELETE operation
       if (change.rangeLength > 0) {
         const deleteOp: OTOperation = {
           type: 'DELETE',
@@ -745,7 +787,6 @@ export class EditorComponent implements OnInit, OnDestroy {
           this.collabSession.sessionId, deleteOp);
       }
 
-      // INSERT operation
       if (change.text.length > 0) {
         const insertOp: OTOperation = {
           type: 'INSERT',
@@ -1002,6 +1043,31 @@ toggleComments(): void {
           this.snackBar.open(
             err.error?.message || 'Failed',
             'Close', { duration: 3000 });
+        }
+      });
+  }
+  toggleRuns(): void {
+    if (this.rightPanel === 'runs') {
+      this.rightPanel = 'none';
+    } else {
+      this.rightPanel = 'runs';
+      this.loadExecutionHistory();
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadExecutionHistory(): void {
+    this.loadingExecutionHistory = true;
+    this.executionService.getByProject(this.projectId)
+      .subscribe({
+        next: (runs) => {
+          this.executionHistory = runs;
+          this.loadingExecutionHistory = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loadingExecutionHistory = false;
+          this.cdr.detectChanges();
         }
       });
   }

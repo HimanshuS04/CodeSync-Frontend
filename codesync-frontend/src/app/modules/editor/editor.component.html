@@ -60,6 +60,12 @@
           {{ commentCount }}
         </span>
       </button>
+      <button class="icon-btn"
+        [class.active-btn]="rightPanel==='runs'"
+        (click)="toggleRuns()"
+        *ngIf="activeFile && canEdit">
+        ▶️ Runs
+      </button>
 
       <button class="commit-btn"
               [disabled]="!activeFile"
@@ -122,12 +128,13 @@
           <button (click)="createFile()">+ Create File</button>
         </div>
         <app-file-tree
-          *ngIf="fileTree.length > 0"
-          [items]="fileTree"
-          [selectedFileId]="activeFile?.fileId || null"
-          (fileSelected)="onFileSelected($event)"
-          (fileDeleted)="onFileDeleted($event)">
-        </app-file-tree>
+        *ngIf="fileTree.length > 0"
+        [items]="fileTree"
+        [selectedFileId]="activeFile?.fileId || null"
+        (fileSelected)="onFileSelected($event)"
+        (fileDeleted)="onFileDeleted($event)"
+        (fileRenamed)="onFileRenamed($event)">
+      </app-file-tree>
       </div>
     </div>
 
@@ -445,6 +452,79 @@
             </div>
 
           </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- Right Panel: Execution History -->
+<div class="right-panel"
+     *ngIf="rightPanel === 'runs' && canEdit">
+  <div class="right-header">
+    <span>🏃 Execution History</span>
+    <button class="icon-btn small"
+            (click)="rightPanel='none'">✕</button>
+  </div>
+  <div class="right-content">
+
+    <div class="history-loading"
+         *ngIf="loadingExecutionHistory">
+      Loading...
+    </div>
+
+    <div class="history-empty"
+         *ngIf="!loadingExecutionHistory
+                && executionHistory.length === 0">
+      <p>No runs yet</p>
+      <p style="font-size:0.72rem;color:#484f58">
+        Click ▶ Run to execute code
+      </p>
+    </div>
+
+    <div class="run-list"
+         *ngIf="!loadingExecutionHistory
+                && executionHistory.length > 0">
+
+      <div class="run-item"
+           *ngFor="let run of executionHistory">
+
+        <div class="run-header">
+          <span class="run-status"
+                [class.success]="run.status==='COMPLETED'"
+                [class.failed]="run.status==='FAILED'
+                  || run.status==='COMPILATION_ERROR'"
+                [class.timeout]="run.status==='TIMED_OUT'">
+            {{ run.status === 'COMPLETED' ? '✅' :
+               run.status === 'TIMED_OUT' ? '⏱️' : '❌' }}
+            {{ run.status }}
+          </span>
+          <span class="run-time">
+            {{ getTimeAgo(run.createdAt) }}
+          </span>
+        </div>
+
+        <div class="run-details">
+          <span class="run-lang">{{ run.language }}</span>
+          <span *ngIf="run.executionTimeMs"
+                class="run-metric">
+            ⏱ {{ run.executionTimeMs }}ms
+          </span>
+          <span *ngIf="run.memoryUsedKb"
+                class="run-metric">
+            💾 {{ run.memoryUsedKb }}KB
+          </span>
+        </div>
+
+        <div class="run-output"
+             *ngIf="run.stdout">
+          <pre>{{ run.stdout.substring(0, 100) }}{{ run.stdout.length > 100 ? '...' : '' }}</pre>
+        </div>
+
+        <div class="run-error"
+             *ngIf="run.stderr || run.compileOutput">
+          <pre>{{ (run.stderr || run.compileOutput)?.substring(0, 100) }}...</pre>
         </div>
 
       </div>

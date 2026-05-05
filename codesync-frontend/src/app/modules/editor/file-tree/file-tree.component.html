@@ -2,27 +2,34 @@
   <div *ngFor="let item of items">
 
     <div class="tree-item"
-         [style.paddingLeft.px]="level * 16 + 8"
-         [class.selected]="item.fileId === selectedFileId"
-         (click)="onItemClick(item)">
+     [style.paddingLeft.px]="level * 16 + 8"
+     [class.selected]="item.fileId === selectedFileId"
+     (click)="onItemClick(item)">
 
-      <!-- Icon -->
-      <span class="item-icon">
-        {{ item.type === 'folder'
-           ? (isExpanded(item.path) ? '📂' : '📁')
-           : '📄' }}
-      </span>
+  <span class="item-icon">
+    {{ item.type === 'folder'
+       ? (isExpanded(item.path) ? '📂' : '📁')
+       : '📄' }}
+  </span>
 
-      <!-- Name -->
-      <span class="item-name">{{ item.name }}</span>
+  <span class="item-name">{{ item.name }}</span>
 
-      <!-- Delete -->
-      <span class="delete-btn"
-            *ngIf="item.type === 'file'"
-            (click)="onDelete($event, item.fileId!)">
-        ✕
-      </span>
-    </div>
+  <!-- Rename -->
+  <span class="action-btn"
+        *ngIf="item.type === 'file'"
+        (click)="onRename($event, item)"
+        title="Rename">
+    ✏️
+  </span>
+
+  <!-- Delete -->
+  <span class="delete-btn"
+        *ngIf="item.type === 'file'"
+        (click)="onDelete($event, item.fileId!)"
+        title="Delete">
+    ✕
+  </span>
+</div>
 
     <!-- Children -->
     <div *ngIf="item.type === 'folder'

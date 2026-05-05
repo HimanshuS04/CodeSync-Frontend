@@ -77,3 +77,24 @@ body {
     background: #161b22 !important;
   }
 }
+// Fix all Material dropdowns/selects
+.cdk-overlay-pane {
+  .mat-mdc-select-panel,
+  .mat-mdc-autocomplete-panel {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+  }
+
+  .mat-mdc-option {
+    color: #e6edf3 !important;
+
+    &:hover {
+      background: rgba(61, 90, 254, 0.1) !important;
+    }
+
+    &.mdc-list-item--selected {
+      background: rgba(61, 90, 254, 0.15) !important;
+      color: #3d5afe !important;
+    }
+  }
+}

@@ -64,4 +64,9 @@ export class FileService {
       `${this.baseUrl}/api/files/delete`,
       { fileId });
   }
+  restoreFile(fileId: string): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/api/files/restore`,
+      { fileId });
+  }
 }
