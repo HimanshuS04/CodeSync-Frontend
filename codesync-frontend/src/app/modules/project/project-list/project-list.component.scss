@@ -1,12 +1,30 @@
 .page {
   min-height: 100vh;
-  background: #0d1117;
+  background-color: #0d1117;
+  background-image: url('/codesync.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(67, 78, 93, 0.6);
+    z-index: 0;
+  }
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
 .page-header {
@@ -38,11 +56,12 @@
 
 .tabs {
   display: flex;
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: rgba(22, 27, 34, 0.75);
+  border: 1px solid rgba(48, 54, 61, 0.6);
   border-radius: 8px;
   padding: 4px;
   gap: 4px;
+  backdrop-filter: blur(6px);
 
   button {
     padding: 6px 16px;
@@ -77,8 +96,8 @@
 }
 
 .project-card {
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: rgba(22, 27, 34, 0.75);
+  border: 1px solid rgba(48, 54, 61, 0.6);
   border-radius: 10px;
   padding: 1.25rem;
   cursor: pointer;
@@ -86,11 +105,13 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  backdrop-filter: blur(6px);
 
   &:hover {
     border-color: #3d5afe;
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(61, 90, 254, 0.15);
+    box-shadow: 0 4px 20px rgba(61, 90, 254, 0.2);
+    background: rgba(22, 27, 34, 0.85);
   }
 
   h3 {

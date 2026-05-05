@@ -1102,3 +1102,19 @@
     word-break: break-all;
   }
 }
+.editor-area {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+
+  &.with-output {
+    flex: 0 0 55%;
+  }
+}
+
+.monaco-box {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}

@@ -1,99 +1,123 @@
-<div class="page-container">
-  <div class="auth-wrapper">
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <span class="bracket">⟨</span>
+        <span class="slash">/</span>
+        <span class="bracket">⟩</span>
+      </div>
+      <h1 class="brand-title">CodeSync</h1>
+      <p class="brand-tagline">
+        Join thousands of developers building together
+      </p>
 
-    <div class="logo-section">
-      <h1>⟨/⟩ CodeSync</h1>
-      <p>Start collaborating today</p>
-    </div>
-
-    <mat-card class="auth-card">
-      <mat-card-header>
-        <mat-card-title>Create Account</mat-card-title>
-        <mat-card-subtitle>
-          Join thousands of developers
-        </mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-
-        <div class="google-btn-wrapper">
-          <div id="google-btn-register"></div>
-          <div class="google-loading" *ngIf="googleLoading">
-            Signing up with Google...
+      <div class="features">
+        <div class="feature-item">
+          <span class="feature-icon">👥</span>
+          <div>
+            <h4>Team Collaboration</h4>
+            <p>Invite team members and code together</p>
           </div>
         </div>
+        <div class="feature-item">
+          <span class="feature-icon">💬</span>
+          <div>
+            <h4>Code Reviews</h4>
+            <p>Comment and discuss on file level</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔔</span>
+          <div>
+            <h4>Stay Updated</h4>
+            <p>Get notified about all project activity</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="divider">or register with email</div>
+  <div class="auth-right">
+    <div class="auth-form-wrapper">
+      <h2>Create Account</h2>
+      <p class="subtitle">Start your coding journey</p>
 
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Google -->
+      <div class="google-section">
+        <div id="google-btn-register"></div>
+        <div class="google-loading" *ngIf="googleLoading">
+          Signing up with Google...
+        </div>
+      </div>
 
-          <mat-form-field appearance="outline"
-                          class="full-width">
-            <mat-label>Username</mat-label>
-            <input matInput
-                   formControlName="username"
-                   placeholder="cooldev123">
-            <mat-error
-              *ngIf="form.get('username')?.hasError('required')">
-              Username is required
-            </mat-error>
-            <mat-error
-              *ngIf="form.get('username')?.hasError('pattern')">
-              3-20 chars, letters/numbers/underscore only
-            </mat-error>
-          </mat-form-field>
+      <div class="divider">or register with email</div>
 
-          <mat-form-field appearance="outline"
-                          class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput
-                   formControlName="email"
-                   type="email"
-                   placeholder="you@example.com">
-            <mat-error
-              *ngIf="form.get('email')?.hasError('required')">
-              Email is required
-            </mat-error>
-            <mat-error
-              *ngIf="form.get('email')?.hasError('email')">
-              Invalid email format
-            </mat-error>
-          </mat-form-field>
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-          <mat-form-field appearance="outline"
-                          class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text"
+                 formControlName="username"
+                 placeholder="cooldev123"
+                 class="form-input">
+          <span class="input-error"
+                *ngIf="form.get('username')?.touched
+                       && form.get('username')?.hasError('required')">
+            Username is required
+          </span>
+          <span class="input-error"
+                *ngIf="form.get('username')?.touched
+                       && form.get('username')?.hasError('pattern')">
+            3-20 chars, letters/numbers/underscore only
+          </span>
+        </div>
+
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email"
+                 formControlName="email"
+                 placeholder="you@example.com"
+                 class="form-input">
+          <span class="input-error"
+                *ngIf="form.get('email')?.touched
+                       && form.get('email')?.hasError('email')">
+            Invalid email format
+          </span>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="password-wrapper">
+            <input [type]="hidePassword ? 'password' : 'text'"
                    formControlName="password"
-                   [type]="hidePassword ? 'password' : 'text'">
-            <mat-error
-              *ngIf="form.get('password')?.hasError('required')">
-              Password is required
-            </mat-error>
-            <mat-error
-              *ngIf="form.get('password')?.hasError('minlength')">
-              Minimum 6 characters
-            </mat-error>
-          </mat-form-field>
+                   placeholder="Min 6 characters"
+                   class="form-input">
+            <button type="button"
+                    class="toggle-password"
+                    (click)="hidePassword = !hidePassword">
+              {{ hidePassword ? '👁️' : '🔒' }}
+            </button>
+          </div>
+          <span class="input-error"
+                *ngIf="form.get('password')?.touched
+                       && form.get('password')?.hasError('minlength')">
+            Minimum 6 characters
+          </span>
+        </div>
 
-          <button mat-raised-button
-                  class="btn-primary full-width submit-btn"
-                  type="submit"
-                  [disabled]="form.invalid || loading">
-            {{ loading ? 'Creating...' : 'Create Account' }}
-          </button>
+        <button type="submit"
+                class="submit-btn"
+                [disabled]="form.invalid || loading">
+          {{ loading ? 'Creating...' : 'Create Account →' }}
+        </button>
 
-        </form>
+      </form>
 
-      </mat-card-content>
-
-      <mat-card-actions>
-        <p class="login-link">
-          Already have an account?
-          <a routerLink="/auth/login">Sign in</a>
-        </p>
-      </mat-card-actions>
-
-    </mat-card>
+      <p class="switch-text">
+        Already have an account?
+        <a routerLink="/auth/login">Sign in</a>
+      </p>
+    </div>
   </div>
 </div>
