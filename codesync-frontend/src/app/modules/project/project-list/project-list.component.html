@@ -1,0 +1,91 @@
+<app-navbar></app-navbar>
+
+<div class="page">
+  <div class="container">
+
+    <div class="page-header">
+      <div>
+        <h1>Projects</h1>
+        <p>Manage and explore projects</p>
+      </div>
+      <button mat-raised-button
+              class="btn-primary"
+              (click)="openCreateDialog()">
+        + New Project
+      </button>
+    </div>
+
+    <!-- Tabs + Search -->
+    <div class="toolbar">
+      <div class="tabs">
+        <button [class.active]="activeTab === 'my'"
+                (click)="loadMyProjects()">
+          My Projects
+        </button>
+        <button [class.active]="activeTab === 'public'"
+                (click)="loadPublicProjects()">
+          Explore
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Search projects</mat-label>
+        <input matInput
+               [(ngModel)]="searchQuery"
+               (ngModelChange)="onSearch()"
+               placeholder="Search...">
+      </mat-form-field>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" *ngIf="loading">
+      <p>Loading...</p>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="projects-grid" *ngIf="!loading">
+
+      <div class="empty" *ngIf="filteredProjects.length === 0">
+        <p>No projects found</p>
+        <button mat-raised-button
+                class="btn-primary"
+                (click)="openCreateDialog()">
+          Create First Project
+        </button>
+      </div>
+
+      <div class="project-card"
+           *ngFor="let project of filteredProjects"
+           (click)="openProject(project.projectId)">
+
+        <div class="card-header">
+          <span class="badge"
+                [class.public]="project.visibility==='PUBLIC'"
+                [class.private]="project.visibility==='PRIVATE'">
+            {{ project.visibility }}
+          </span>
+        </div>
+
+        <h3>{{ project.name }}</h3>
+
+        <p class="desc">
+          {{ project.description || 'No description' }}
+        </p>
+
+        <div class="card-footer">
+          <span class="lang">
+            {{ project.language }}
+          </span>
+          <span class="star-btn"
+                [class.starred]="isStarred(project.projectId)"
+                (click)="toggleStar($event, project.projectId)">
+            {{ isStarred(project.projectId) ? '★' : '☆' }}
+            {{ project.starCount }}
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

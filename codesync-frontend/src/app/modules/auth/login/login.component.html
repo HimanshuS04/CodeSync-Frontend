@@ -1,0 +1,110 @@
+<div class="auth-page">
+  <div class="auth-left">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <span class="bracket">⟨</span>
+        <span class="slash">/</span>
+        <span class="bracket">⟩</span>
+      </div>
+      <h1 class="brand-title">CodeSync</h1>
+      <p class="brand-tagline">
+        Code Together. Build Faster. Ship Smarter.
+      </p>
+
+      <div class="features">
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <div>
+            <h4>Real-time Collaboration</h4>
+            <p>Edit code simultaneously with your team</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">▶️</span>
+          <div>
+            <h4>Run Code Instantly</h4>
+            <p>Execute code in 7+ languages from browser</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📸</span>
+          <div>
+            <h4>Version Control</h4>
+            <p>Track changes with snapshots and restore</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-form-wrapper">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to your account</p>
+
+      <!-- Google -->
+      <div class="google-section">
+        <div id="google-btn"></div>
+        <div class="google-loading" *ngIf="googleLoading">
+          Signing in with Google...
+        </div>
+      </div>
+
+      <div class="divider">or continue with email</div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email"
+                 formControlName="email"
+                 placeholder="you@example.com"
+                 class="form-input">
+          <span class="input-error"
+                *ngIf="form.get('email')?.touched
+                       && form.get('email')?.hasError('email')">
+            Invalid email format
+          </span>
+          <span class="input-error"
+                *ngIf="form.get('email')?.touched
+                       && form.get('email')?.hasError('required')">
+            Email is required
+          </span>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="password-wrapper">
+            <input [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="password"
+                   placeholder="Enter your password"
+                   class="form-input">
+            <button type="button"
+                    class="toggle-password"
+                    (click)="hidePassword = !hidePassword">
+              {{ hidePassword ? '👁️' : '🔒' }}
+            </button>
+          </div>
+          <span class="input-error"
+                *ngIf="form.get('password')?.touched
+                       && form.get('password')?.hasError('minlength')">
+            Minimum 6 characters
+          </span>
+        </div>
+
+        <button type="submit"
+                class="submit-btn"
+                [disabled]="form.invalid || loading">
+          {{ loading ? 'Signing in...' : 'Sign In →' }}
+        </button>
+
+      </form>
+
+      <p class="switch-text">
+        Don't have an account?
+        <a routerLink="/auth/register">Create one</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+.tree {
+  user-select: none;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding-right: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+
+    .delete-btn {
+      opacity: 1;
+    }
+  }
+
+  &.selected {
+    background: rgba(61, 90, 254, 0.15);
+  }
+}
+
+.item-icon {
+  font-size: 0.85rem;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.item-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: #c9d1d9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-btn {
+  opacity: 0;
+  color: #8b949e;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: opacity 0.1s;
+  flex-shrink: 0;
+
+  &:hover {
+    color: #f85149;
+    background: rgba(248, 81, 73, 0.15);
+  }
+  .action-btn {
+  opacity: 0;
+  font-size: 0.7rem;
+  padding: 2px 3px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+
+  &:hover {
+    background: rgba(61, 90, 254, 0.15);
+  }
+}
+
+.tree-item:hover {
+  .action-btn {
+    opacity: 1;
+  }
+}
+}

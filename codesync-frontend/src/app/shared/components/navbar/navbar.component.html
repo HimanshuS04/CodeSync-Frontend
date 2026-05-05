@@ -1,0 +1,145 @@
+<div class="navbar">
+  <div class="nav-inner">
+
+    <!-- Logo -->
+    <div class="logo" routerLink="/dashboard">
+      <span class="logo-bracket">⟨</span>
+      <span class="logo-slash">/</span>
+      <span class="logo-bracket">⟩</span>
+      <span class="logo-text">CodeSync</span>
+    </div>
+
+    <!-- Nav Links -->
+    <nav class="nav-links">
+      <a routerLink="/dashboard"
+         routerLinkActive="active-link"
+         class="nav-link">
+        🏠 Dashboard
+      </a>
+      <a routerLink="/projects"
+         routerLinkActive="active-link"
+         class="nav-link">
+        📁 Projects
+      </a>
+      <a routerLink="/admin"
+         routerLinkActive="active-link"
+         class="nav-link"
+         *ngIf="isAdmin">
+        ⚙️ Admin
+      </a>
+    </nav>
+
+    <!-- Right Side -->
+    <div class="nav-right">
+
+      <!-- Notification Bell -->
+      <button class="notif-btn"
+              [matMenuTriggerFor]="notifMenu"
+              (click)="openNotifications()">
+        <span class="bell">🔔</span>
+        <span class="notif-badge"
+              *ngIf="unreadCount > 0">
+          {{ unreadCount > 9 ? '9+' : unreadCount }}
+        </span>
+      </button>
+
+      <mat-menu #notifMenu="matMenu">
+        <div class="notif-header" (click)="$event.stopPropagation()">
+          <span>Notifications</span>
+          <button class="mark-all-btn"
+                  *ngIf="unreadCount > 0"
+                  (click)="markAllRead()">
+            Mark all read
+          </button>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="notif-empty"
+             *ngIf="!loadingNotifications
+                    && notifications.length === 0">
+          No notifications
+        </div>
+
+        <div class="notif-loading"
+             *ngIf="loadingNotifications">
+          Loading...
+        </div>
+
+        <div class="notif-list"
+             *ngIf="!loadingNotifications
+                    && notifications.length > 0">
+          <button mat-menu-item
+                  class="notif-item"
+                  *ngFor="let n of notifications"
+                  [class.unread]="!n.isRead"
+                  (click)="handleNotificationClick(n)">
+            <div class="notif-content">
+              <div class="notif-title">{{ n.title }}</div>
+              <div class="notif-message">{{ n.message }}</div>
+              <div class="notif-session-id"
+                   *ngIf="n.relatedType === 'SESSION'">
+                Session ID: {{ n.relatedId }}
+              </div>
+              <div class="notif-meta">
+                <span class="notif-time">
+                  {{ getTimeAgo(n.createdAt) }}
+                </span>
+                <span class="notif-copy"
+                      *ngIf="n.relatedType === 'SESSION'">
+                  📋 Click to copy
+                </span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </mat-menu>
+
+      <!-- Divider -->
+      <div class="nav-divider"></div>
+
+      <!-- User -->
+      <button class="user-btn"
+              [matMenuTriggerFor]="userMenu">
+        <div class="user-avatar">
+          {{ user?.username?.charAt(0)?.toUpperCase() }}
+        </div>
+        <span class="user-name">
+          {{ user?.username }}
+        </span>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header"
+             (click)="$event.stopPropagation()">
+          <div class="user-menu-avatar">
+            {{ user?.username?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="user-menu-info">
+            <p class="menu-username">
+              {{ user?.username }}
+            </p>
+            <p class="menu-email">
+              {{ user?.email }}
+            </p>
+            <span class="menu-role">
+              {{ user?.role }}
+            </span>
+          </div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/profile">
+          👤 Profile
+        </button>
+        <button mat-menu-item routerLink="/projects">
+          📁 My Projects
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          🚪 Logout
+        </button>
+      </mat-menu>
+
+    </div>
+  </div>
+</div>

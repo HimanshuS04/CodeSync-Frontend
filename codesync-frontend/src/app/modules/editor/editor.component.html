@@ -1,0 +1,536 @@
+<div class="editor-layout">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-left">
+      <button class="icon-btn" (click)="goBack()">←</button>
+      <button class="icon-btn" (click)="toggleSidebar()">
+        {{ sidebarOpen ? '◀' : '▶' }}
+      </button>
+      <span class="title">⟨/⟩ Editor</span>
+
+      <!-- Live indicator -->
+      <span class="live-badge" *ngIf="isCollabActive">
+        🟢 Live | {{ participants.length }} users
+      </span>
+    </div>
+
+    <div class="top-right">
+
+      <!-- Collab buttons -->
+      <button class="collab-btn"
+              (click)="startCollab()"
+              *ngIf="isOwner && !isCollabActive && activeFile">
+        👥 Start Collab
+      </button>
+
+      <button class="join-btn"
+              (click)="joinCollab()"
+              *ngIf="canEdit && !isCollabActive && !isOwner">
+        👥 Join Session
+      </button>
+
+      <button class="icon-btn"
+              [class.active-btn]="rightPanel==='collab'"
+              (click)="rightPanel = rightPanel==='collab' ? 'none' : 'collab'"
+              *ngIf="isCollabActive">
+        👥 Session
+      </button>
+
+      <button class="icon-btn"
+              [class.active-btn]="showStdin"
+              (click)="toggleStdin()"
+              *ngIf="activeFile && canEdit">
+        ⌨️ Stdin
+      </button>
+
+      <button class="icon-btn"
+              [class.active-btn]="rightPanel==='history'"
+              (click)="toggleHistory()"
+              *ngIf="activeFile && canEdit">
+        📜 History
+      </button>
+      <button class="icon-btn"
+        [class.active-btn]="rightPanel==='comments'"
+        (click)="toggleComments()"
+        *ngIf="activeFile && canEdit">
+        💬 Comments
+        <span class="count-badge"
+              *ngIf="commentCount > 0">
+          {{ commentCount }}
+        </span>
+      </button>
+      <button class="icon-btn"
+        [class.active-btn]="rightPanel==='runs'"
+        (click)="toggleRuns()"
+        *ngIf="activeFile && canEdit">
+        ▶️ Runs
+      </button>
+
+      <button class="commit-btn"
+              [disabled]="!activeFile"
+              (click)="createSnapshot()"
+              *ngIf="activeFile && canEdit">
+        📸 Commit
+      </button>
+
+      <button class="run-btn"
+              [disabled]="!activeFile || running"
+              (click)="runCode()"
+              *ngIf="canEdit">
+        {{ running ? '⏳ Running...' : '▶ Run' }}
+      </button>
+
+      <button class="save-btn-top"
+              [disabled]="!activeFile
+                || !unsavedFiles.has(activeFile?.fileId ?? '')
+                || saving"
+              (click)="saveFile()"
+              *ngIf="canEdit">
+        {{ saving ? 'Saving...' : '💾 Save' }}
+      </button>
+
+      <button class="new-btn"
+              (click)="createFile()"
+              *ngIf="canEdit">
+        + New File
+      </button>
+
+      <span class="readonly-badge" *ngIf="!canEdit">
+        🔒 Read Only
+      </span>
+    </div>
+  </div>
+
+  <!-- Stdin -->
+  <div class="stdin-panel" *ngIf="showStdin">
+    <div class="stdin-header">
+      <span>⌨️ Standard Input</span>
+      <button class="icon-btn small"
+              (click)="toggleStdin()">✕</button>
+    </div>
+    <textarea class="stdin-area"
+              [(ngModel)]="stdin"
+              placeholder="Enter input here..."
+              rows="3"></textarea>
+  </div>
+
+  <!-- Body -->
+  <div class="editor-body">
+
+    <!-- Sidebar -->
+    <div class="sidebar" *ngIf="sidebarOpen">
+      <div class="sidebar-header">FILES</div>
+      <div class="sidebar-content">
+        <div class="empty-msg"
+             *ngIf="fileTree.length === 0 && !loading">
+          <p>No files yet</p>
+          <button (click)="createFile()">+ Create File</button>
+        </div>
+        <app-file-tree
+        *ngIf="fileTree.length > 0"
+        [items]="fileTree"
+        [selectedFileId]="activeFile?.fileId || null"
+        (fileSelected)="onFileSelected($event)"
+        (fileDeleted)="onFileDeleted($event)"
+        (fileRenamed)="onFileRenamed($event)">
+      </app-file-tree>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <app-file-tabs
+        [openFiles]="openFiles"
+        [activeFileId]="activeFile?.fileId || null"
+        [unsavedFiles]="unsavedFiles"
+        (tabSelected)="onTabSelected($event)"
+        (tabClosed)="onTabClosed($event)">
+      </app-file-tabs>
+
+      <div class="editor-with-right">
+        <div class="editor-output-split">
+
+          <div class="editor-area"
+               [class.with-output]="showOutput">
+            <div #editorContainer
+                 class="monaco-box"
+                 *ngIf="activeFile"></div>
+            <div class="empty-state" *ngIf="!activeFile">
+              <h2>⟨/⟩ CodeSync Editor</h2>
+              <p>Select a file to start editing</p>
+            </div>
+          </div>
+
+          <!-- Output Panel (same as before) -->
+          <div class="output-panel" *ngIf="showOutput">
+            <div class="output-header">
+              <div class="output-tabs">
+                <button [class.active]="activeOutputTab==='output'"
+                        (click)="activeOutputTab='output'">Output</button>
+                <button [class.active]="activeOutputTab==='error'"
+                        (click)="activeOutputTab='error'">Errors</button>
+                <button [class.active]="activeOutputTab==='info'"
+                        (click)="activeOutputTab='info'">Info</button>
+              </div>
+              <div class="output-status" *ngIf="executionResult">
+                <span [style.color]="getStatusColor()">
+                  {{ getStatusIcon() }} {{ executionResult.status }}
+                </span>
+              </div>
+              <button class="icon-btn small" (click)="toggleOutput()">✕</button>
+            </div>
+            <div class="output-loading" *ngIf="running">
+              <div class="spinner"></div>
+              <p>Running...</p>
+            </div>
+            <div class="output-empty" *ngIf="!running && !executionResult">
+              <p>Click ▶ Run to execute</p>
+            </div>
+            <div class="output-content" *ngIf="!running && executionResult && activeOutputTab==='output'">
+              <pre *ngIf="executionResult.stdout">{{ executionResult.stdout }}</pre>
+              <div class="no-output" *ngIf="!executionResult.stdout">No output</div>
+            </div>
+            <div class="output-content error-content" *ngIf="!running && executionResult && activeOutputTab==='error'">
+              <pre *ngIf="executionResult.stderr">{{ executionResult.stderr }}</pre>
+              <pre *ngIf="executionResult.compileOutput">{{ executionResult.compileOutput }}</pre>
+              <div class="no-output" *ngIf="!executionResult.stderr && !executionResult.compileOutput">No errors</div>
+            </div>
+            <div class="output-content" *ngIf="!running && executionResult && activeOutputTab==='info'">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Status</span>
+                  <span class="info-value" [style.color]="getStatusColor()">{{ executionResult.status }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Time</span>
+                  <span class="info-value">{{ executionResult.executionTimeMs ? executionResult.executionTimeMs + 'ms' : 'N/A' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Memory</span>
+                  <span class="info-value">{{ executionResult.memoryUsedKb ? executionResult.memoryUsedKb + 'KB' : 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Panel: History -->
+        <div class="right-panel" *ngIf="rightPanel === 'history'">
+          <div class="right-header">
+            <span>📜 History</span>
+            <button class="icon-btn small" (click)="rightPanel='none'">✕</button>
+          </div>
+          <div class="right-content">
+            <div class="history-loading" *ngIf="loadingHistory">Loading...</div>
+            <div class="history-empty" *ngIf="!loadingHistory && snapshots.length === 0">
+              <p>No snapshots</p>
+            </div>
+            <div class="snapshot-list" *ngIf="!loadingHistory && snapshots.length > 0">
+              <div class="snapshot-item" *ngFor="let snap of snapshots">
+                <div class="snapshot-header">
+                  <span class="snapshot-id">#{{ snap.id }}</span>
+                  <span class="snapshot-time">{{ getTimeAgo(snap.createdAt) }}</span>
+                </div>
+                <div class="snapshot-message">{{ snap.message }}</div>
+                <div class="snapshot-hash">{{ snap.hash.substring(0, 12) }}...</div>
+                <div class="snapshot-actions">
+                  <button class="restore-btn" (click)="restoreSnapshot(snap)">↩ Restore</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Collab Session -->
+        <div class="right-panel" *ngIf="rightPanel === 'collab'">
+          <div class="right-header">
+            <span>👥 Live Session</span>
+            <button class="icon-btn small" (click)="rightPanel='none'">✕</button>
+          </div>
+          <div class="right-content">
+
+            <!-- Session ID -->
+            <div class="session-id-box">
+              <span class="session-label">Session ID</span>
+              <div class="session-id-row">
+                <span class="session-id">
+                  {{ collabSession?.sessionId?.substring(0, 8) }}...
+                </span>
+                <button class="copy-btn"
+                        (click)="copySessionId()">
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+
+            <!-- Participants -->
+            <div class="participants-section">
+              <span class="section-label">
+                Participants ({{ participants.length }})
+              </span>
+              <div class="participant-item"
+                   *ngFor="let p of participants">
+                <span class="p-color"
+                      [style.background]="p.color">
+                </span>
+                <span class="p-name">{{ p.username }}</span>
+                <span class="p-role">{{ p.role }}</span>
+              </div>
+            </div>
+
+            <!-- End/Leave -->
+            <button class="end-session-btn"
+                    (click)="endCollab()">
+              {{ isOwner ? '⏹ End Session' : '🚪 Leave Session' }}
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span *ngIf="activeFile">📄 {{ activeFile.path }}</span>
+    <span class="spacer"></span>
+    <span *ngIf="isCollabActive" class="live-tag">
+      🟢 Live | {{ participants.length }} users
+    </span>
+    <span *ngIf="executionResult" [style.color]="getStatusColor()">
+      {{ getStatusIcon() }} {{ executionResult.status }}
+    </span>
+    <span *ngIf="activeFile" class="lang-tag">{{ activeFile.language }}</span>
+    <span *ngIf="activeFile && unsavedFiles.has(activeFile.fileId)" class="unsaved-tag">● Unsaved</span>
+  </div>
+  <!-- Right Panel: Comments -->
+<div class="right-panel"
+     *ngIf="rightPanel === 'comments'">
+  <div class="right-header">
+    <span>💬 Comments</span>
+    <button class="icon-btn small"
+            (click)="rightPanel='none'">✕</button>
+  </div>
+  <div class="right-content">
+
+    <!-- Add Comment -->
+    <div class="add-comment-box" *ngIf="canEdit">
+      <textarea class="comment-input"
+                [(ngModel)]="newCommentText"
+                placeholder="Write a comment..."
+                rows="3">
+      </textarea>
+      <button class="add-comment-btn"
+              [disabled]="!newCommentText.trim()"
+              (click)="addComment()">
+        Add Comment
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="history-loading"
+         *ngIf="loadingComments">
+      Loading...
+    </div>
+
+    <!-- Empty -->
+    <div class="history-empty"
+         *ngIf="!loadingComments
+                && comments.length === 0">
+      <p>No comments yet</p>
+    </div>
+
+    <!-- Comment List -->
+    <div class="comment-list"
+         *ngIf="!loadingComments
+                && comments.length > 0">
+
+      <div class="comment-item"
+           *ngFor="let comment of comments"
+           [class.resolved]="comment.isResolved">
+
+        <!-- Comment Header -->
+        <div class="comment-top">
+          <div class="comment-author">
+            <span class="author-avatar">
+              {{ comment.authorName.charAt(0).toUpperCase() }}
+            </span>
+            <span class="author-name">
+              {{ comment.authorName }}
+            </span>
+          </div>
+          <span class="comment-time">
+            {{ getTimeAgo(comment.createdAt) }}
+          </span>
+        </div>
+
+        <!-- Comment Content -->
+        <div class="comment-body">
+          {{ comment.content }}
+        </div>
+
+        <!-- Resolved Badge -->
+        <span class="resolved-badge"
+              *ngIf="comment.isResolved">
+          ✅ Resolved
+        </span>
+
+        <!-- Comment Actions -->
+        <div class="comment-actions">
+          <button (click)="startReply(comment.id)">
+            ↩ Reply
+          </button>
+          <button *ngIf="!comment.isResolved"
+                  (click)="resolveComment(comment.id)">
+            ✓ Resolve
+          </button>
+          <button *ngIf="comment.isResolved"
+                  (click)="unresolveComment(comment.id)">
+            ↺ Unresolve
+          </button>
+          <button *ngIf="isMyComment(comment.authorId)"
+                  class="delete-action"
+                  (click)="deleteComment(comment.id)">
+            ✕ Delete
+          </button>
+        </div>
+
+        <!-- Reply Input -->
+        <div class="reply-input-box"
+             *ngIf="replyingTo === comment.id">
+          <textarea class="comment-input small"
+                    [(ngModel)]="replyText"
+                    placeholder="Write a reply..."
+                    rows="2">
+          </textarea>
+          <div class="reply-actions">
+            <button class="cancel-reply"
+                    (click)="cancelReply()">
+              Cancel
+            </button>
+            <button class="submit-reply"
+                    [disabled]="!replyText.trim()"
+                    (click)="submitReply()">
+              Reply
+            </button>
+          </div>
+        </div>
+
+        <!-- Replies -->
+        <div class="replies"
+             *ngIf="comment.replies.length > 0">
+          <div class="reply-item"
+               *ngFor="let reply of comment.replies">
+
+            <div class="comment-top">
+              <div class="comment-author">
+                <span class="author-avatar small-avatar">
+                  {{ reply.authorName.charAt(0).toUpperCase() }}
+                </span>
+                <span class="author-name">
+                  {{ reply.authorName }}
+                </span>
+              </div>
+              <span class="comment-time">
+                {{ getTimeAgo(reply.createdAt) }}
+              </span>
+            </div>
+
+            <div class="comment-body">
+              {{ reply.content }}
+            </div>
+
+            <div class="comment-actions"
+                 *ngIf="isMyComment(reply.authorId)">
+              <button class="delete-action"
+                      (click)="deleteComment(reply.id)">
+                ✕ Delete
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- Right Panel: Execution History -->
+<div class="right-panel"
+     *ngIf="rightPanel === 'runs' && canEdit">
+  <div class="right-header">
+    <span>🏃 Execution History</span>
+    <button class="icon-btn small"
+            (click)="rightPanel='none'">✕</button>
+  </div>
+  <div class="right-content">
+
+    <div class="history-loading"
+         *ngIf="loadingExecutionHistory">
+      Loading...
+    </div>
+
+    <div class="history-empty"
+         *ngIf="!loadingExecutionHistory
+                && executionHistory.length === 0">
+      <p>No runs yet</p>
+      <p style="font-size:0.72rem;color:#484f58">
+        Click ▶ Run to execute code
+      </p>
+    </div>
+
+    <div class="run-list"
+         *ngIf="!loadingExecutionHistory
+                && executionHistory.length > 0">
+
+      <div class="run-item"
+           *ngFor="let run of executionHistory">
+
+        <div class="run-header">
+          <span class="run-status"
+                [class.success]="run.status==='COMPLETED'"
+                [class.failed]="run.status==='FAILED'
+                  || run.status==='COMPILATION_ERROR'"
+                [class.timeout]="run.status==='TIMED_OUT'">
+            {{ run.status === 'COMPLETED' ? '✅' :
+               run.status === 'TIMED_OUT' ? '⏱️' : '❌' }}
+            {{ run.status }}
+          </span>
+          <span class="run-time">
+            {{ getTimeAgo(run.createdAt) }}
+          </span>
+        </div>
+
+        <div class="run-details">
+          <span class="run-lang">{{ run.language }}</span>
+          <span *ngIf="run.executionTimeMs"
+                class="run-metric">
+            ⏱ {{ run.executionTimeMs }}ms
+          </span>
+          <span *ngIf="run.memoryUsedKb"
+                class="run-metric">
+            💾 {{ run.memoryUsedKb }}KB
+          </span>
+        </div>
+
+        <div class="run-output"
+             *ngIf="run.stdout">
+          <pre>{{ run.stdout.substring(0, 100) }}{{ run.stdout.length > 100 ? '...' : '' }}</pre>
+        </div>
+
+        <div class="run-error"
+             *ngIf="run.stderr || run.compileOutput">
+          <pre>{{ (run.stderr || run.compileOutput)?.substring(0, 100) }}...</pre>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>

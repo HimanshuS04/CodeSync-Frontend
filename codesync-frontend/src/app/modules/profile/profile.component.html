@@ -1,0 +1,124 @@
+<app-navbar></app-navbar>
+
+<div class="page">
+  <div class="container">
+
+    <div class="loading" *ngIf="loading">Loading...</div>
+
+    <div *ngIf="!loading && profile">
+
+      <h1 class="page-title">👤 My Profile</h1>
+
+      <!-- Profile Card -->
+      <div class="profile-card" *ngIf="!editMode">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            {{ profile.username.charAt(0).toUpperCase() }}
+          </div>
+          <div class="profile-info">
+            <h2>{{ profile.username }}</h2>
+            <p>{{ profile.email }}</p>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <div class="detail-row">
+            <span class="detail-label">Role</span>
+            <span class="detail-value role-tag">
+              {{ profile.role }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="detail-value"
+                  [class.active-status]="profile.isActive">
+              {{ profile.isActive ? '🟢 Active' : '🔴 Suspended' }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Joined</span>
+            <span class="detail-value">
+              {{ getTimeAgo(profile.createdAt) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button class="edit-btn" (click)="startEdit()">
+            ✏️ Edit Profile
+          </button>
+          <button class="password-btn"
+                  (click)="togglePasswordForm()">
+            🔒 Change Password
+          </button>
+        </div>
+      </div>
+
+      <!-- Edit Profile -->
+      <div class="edit-card" *ngIf="editMode">
+        <h2>Edit Profile</h2>
+
+        <label>Username</label>
+        <input type="text"
+               class="form-input"
+               [(ngModel)]="editUsername"
+               placeholder="Username">
+
+        <label>Email</label>
+        <input type="email"
+               class="form-input"
+               [(ngModel)]="editEmail"
+               placeholder="Email">
+
+        <div class="form-actions">
+          <button class="cancel-btn"
+                  (click)="cancelEdit()">
+            Cancel
+          </button>
+          <button class="save-btn"
+                  [disabled]="!editUsername.trim() || savingProfile"
+                  (click)="saveProfile()">
+            {{ savingProfile ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="password-card" *ngIf="showPasswordForm">
+        <h2>🔒 Change Password</h2>
+
+        <label>Current Password</label>
+        <input type="password"
+               class="form-input"
+               [(ngModel)]="oldPassword"
+               placeholder="Current password">
+
+        <label>New Password</label>
+        <input type="password"
+               class="form-input"
+               [(ngModel)]="newPassword"
+               placeholder="New password (min 6 chars)">
+
+        <label>Confirm New Password</label>
+        <input type="password"
+               class="form-input"
+               [(ngModel)]="confirmPassword"
+               placeholder="Confirm new password">
+
+        <div class="form-actions">
+          <button class="cancel-btn"
+                  (click)="togglePasswordForm()">
+            Cancel
+          </button>
+          <button class="save-btn"
+                  [disabled]="!oldPassword || !newPassword
+                    || !confirmPassword || changingPassword"
+                  (click)="changePassword()">
+            {{ changingPassword ? 'Changing...' : 'Change Password' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

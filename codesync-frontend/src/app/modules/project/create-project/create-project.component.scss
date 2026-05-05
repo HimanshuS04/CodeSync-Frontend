@@ -1,0 +1,167 @@
+.dialog-container {
+  background: #161b22;
+  padding: 2rem;
+  min-width: 480px;
+  border-radius: 12px;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  h2 {
+    font-size: 1.3rem;
+    color: #e6edf3;
+    font-weight: 700;
+  }
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e6edf3;
+  }
+}
+
+.dialog-desc {
+  color: #8b949e;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    margin-bottom: 6px;
+  }
+
+  .optional {
+    font-weight: 400;
+    color: #484f58;
+    font-size: 0.78rem;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+
+  .half {
+    flex: 1;
+  }
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e6edf3;
+  font-size: 0.88rem;
+  font-family: 'Segoe UI', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #3d5afe;
+    box-shadow: 0 0 0 2px rgba(61, 90, 254, 0.15);
+  }
+
+  &::placeholder {
+    color: #484f58;
+  }
+}
+
+.form-textarea {
+  resize: none;
+  line-height: 1.5;
+}
+
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238b949e'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 36px;
+
+  option {
+    background: #161b22;
+    color: #e6edf3;
+    padding: 8px;
+  }
+}
+
+.error-text {
+  display: block;
+  color: #f85149;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #30363d;
+}
+
+.cancel-btn {
+  background: none;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #8b949e;
+    color: #e6edf3;
+  }
+}
+
+.create-btn {
+  background: linear-gradient(135deg, #3d5afe, #00b0ff);
+  border: none;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+}

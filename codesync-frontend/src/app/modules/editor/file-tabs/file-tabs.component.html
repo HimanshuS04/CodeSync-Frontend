@@ -1,0 +1,11 @@
+<div class="tabs-bar">
+  <div class="tab"
+       *ngFor="let file of openFiles"
+       [class.active]="file.fileId === activeFileId"
+       (click)="onSelect(file)">
+
+    <span class="dot" *ngIf="isUnsaved(file.fileId)"></span>
+    <span class="tab-name">{{ file.name }}</span>
+    <span class="close" (click)="onClose($event, file)">✕</span>
+  </div>
+</div>
