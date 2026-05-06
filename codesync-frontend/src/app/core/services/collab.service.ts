@@ -97,13 +97,19 @@ export class CollabService {
     return this.http.get<CollabSession[]>(
       `${this.baseUrl}/api/sessions/project/${projectId}`);
   }
+  private getHubUrl(): string {
+    if (window.location.hostname === 'localhost') {
+      return 'http://localhost:5003/hubs/collab';
+    }
+    return 'https://codesync-collab.onrender.com/hubs/collab';
+  }
 
   // SignalR Connection
   async connectToHub(sessionId: string): Promise<void> {
     const token = this.authService.getToken();
 
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`http://localhost:5003/hubs/collab`, {
+      .withUrl(this.getHubUrl(),{
         accessTokenFactory: () => token || ''
       })
       .withAutomaticReconnect()
