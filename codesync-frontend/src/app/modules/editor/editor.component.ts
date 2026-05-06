@@ -203,23 +203,23 @@ export class EditorComponent implements OnInit, OnDestroy {
         autoClosingQuotes: 'always'
       });
 
-    this.editor.onDidChangeModelContent(() => {
-      if (this.ignoreNextChange) {
-        this.ignoreNextChange = false;
-        return;
+    this.editor.onDidChangeModelContent((e: any) => {
+    if (this.ignoreNextChange) {
+      this.ignoreNextChange = false;
+      return;
+    }
+
+    if (this.activeFile) {
+      this.editorContent = this.editor.getValue();
+      this.unsavedFiles.add(this.activeFile.fileId);
+
+      if (this.isCollabActive) {
+        this.sendCollabEdits(e);
       }
 
-      if (this.activeFile) {
-        this.editorContent = this.editor.getValue();
-        this.unsavedFiles.add(this.activeFile.fileId);
-
-        if (this.isCollabActive) {
-          this.sendCollabEdits(event);
-        }
-
-        this.cdr.detectChanges();
-      }
-    });
+      this.cdr.detectChanges();
+    }
+  });
 
     this.editor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
